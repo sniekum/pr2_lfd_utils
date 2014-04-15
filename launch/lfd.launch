@@ -5,10 +5,7 @@
   <include file="$(find dmp)/launch/dmp.launch"/>
   <include file="$(find ar_track_alvar)/launch/pr2_bundle.launch"/>
   <include file="$(find pr2_gripper_traj_action)/launch/pr2_gripper_traj_action.launch"/>
-  <include file="$(find pr2_ar_head_track_action)/launch/pr2_ar_head_track_action.launch"/>
   <include file="$(find pr2_unstructured_lfd)/launch/mannequin_controllers.launch"/>
   <include file="/etc/ros/openni_head.launch"/>
-  <include file="$(find image_saver)/launch/image_saver.launch"/>
-  <node pkg="articulation_models" type="model_learner_srv" name="model_learner_srv" output="screen"/>
 
 </launch>

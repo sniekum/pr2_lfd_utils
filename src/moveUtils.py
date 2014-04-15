@@ -44,7 +44,7 @@ from cartesianTrajIK import *
 import copy
 import threading
 import geometry_msgs
-from pr2_ar_head_track_action.msg import *
+#from pr2_ar_head_track_action.msg import *
 import sys
 from std_msgs.msg import *
 import numpy as np
@@ -248,17 +248,17 @@ class MoveUtils():
     def __init__(self):
         self.arm = [ArmMoveUtils(i) for i in range(2)]
         
-        self.ar_head_track_client = al.SimpleActionClient('/ar_head_track_action', Pr2ARHeadTrackAction)
-        while not self.ar_head_track_client.wait_for_server(rospy.Duration(5.0)):
-            print "Waiting for the AR head track action server..."
-        print "Connected to the AR head track action server"
-        self.ar_head_track_goal = Pr2ARHeadTrackGoal()
+        #self.ar_head_track_client = al.SimpleActionClient('/ar_head_track_action', Pr2ARHeadTrackAction)
+        #while not self.ar_head_track_client.wait_for_server(rospy.Duration(5.0)):
+        #    print "Waiting for the AR head track action server..."
+        #print "Connected to the AR head track action server"
+        #self.ar_head_track_goal = Pr2ARHeadTrackGoal()
         
         
     #send a command to the AR head track action 
-    def commandARHeadTrack(self, tag_id):
-        self.ar_head_track_goal.tag_id = tag_id
-        self.ar_head_track_client.send_goal(self.ar_head_track_goal)
+    #def commandARHeadTrack(self, tag_id):
+    #    self.ar_head_track_goal.tag_id = tag_id
+    #    self.ar_head_track_client.send_goal(self.ar_head_track_goal)
         
         
 
