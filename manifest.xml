@@ -1,0 +1,26 @@
+<package>
+   <description brief="pr2_lfd_utils">
+
+     pr2_lfd_utils
+
+  </description>
+  <author>Scott Niekum</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/pr2_unstructured_lfd</url>
+  <depend package="roslib"/>
+  <depend package="rospy"/>
+  <depend package="std_msgs"/>
+  <depend package="actionlib_msgs"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="dmp"/>
+  <depend package="ar_track_alvar"/>
+  <depend package="pr2_gripper_traj_action"/>
+  <depend package="tf"/>
+  <depend package="articulation_msgs"/>
+  <depend package="pr2_controllers_msgs"/>
+  <depend package="timed_trajectory_controller"/>
+  <depend package="pr2_ar_head_track_action"/>
+</package>
+
+
