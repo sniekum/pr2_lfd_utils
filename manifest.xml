@@ -17,10 +17,8 @@
   <depend package="ar_track_alvar"/>
   <depend package="pr2_gripper_traj_action"/>
   <depend package="tf"/>
-  <depend package="articulation_msgs"/>
   <depend package="pr2_controllers_msgs"/>
   <depend package="timed_trajectory_controller"/>
-  <depend package="pr2_ar_head_track_action"/>
 </package>
 
 
