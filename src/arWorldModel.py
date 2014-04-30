@@ -45,8 +45,8 @@ import threading
 import singleton
 import generalUtils
 import moveUtils
-from pr2_unstructured_lfd.msg import *
-#import pr2_unstructured_lfd.msg
+from pr2_lfd_utils.msg import *
+#import pr2_lfd_utils.msg
 
 
 #Singleton class representing object data (from AR tags) and arm states
@@ -100,7 +100,7 @@ class ARWorldModel:
         rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.arPoseMarkerCallback)
         
         #Set up wm publisher
-        self.wm_pub = rospy.Publisher('/ar_world_model', pr2_unstructured_lfd.msg.WMData)
+        self.wm_pub = rospy.Publisher('/ar_world_model', pr2_lfd_utils.msg.WMData)
         
         self.rmp_lock = threading.Lock()
         self.rmp_total_weight = 0.0
@@ -141,10 +141,10 @@ class ARWorldModel:
                 seen.add(mark.id)
                 
         #Publish the entire world model
-        wm_data = pr2_unstructured_lfd.msg.WMData()
+        wm_data = pr2_lfd_utils.msg.WMData()
         wm_data.objects = []
         for (obj_id, obj) in self.objects.items():
-            temp = pr2_unstructured_lfd.msg.WMObject()
+            temp = pr2_lfd_utils.msg.WMObject()
             temp.id = obj_id
             temp.pose.pose = self.gen_utils.vecToRosPose(obj)
             if obj_id in seen:

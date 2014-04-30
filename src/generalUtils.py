@@ -72,7 +72,7 @@ class GeneralUtils():
         
     
     
-     def rosPointToVec(self, pt):
+    def rosPointToVec(self, pt):
         vec = [0]*3
         vec[0] = pt.x
         vec[1] = pt.y
