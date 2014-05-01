@@ -38,13 +38,11 @@ import rospy
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import coordFrame 
 import generalUtils
 import trajUtils
 import moveUtils
 import drawUtils
 import arWorldModel
-import skillParse
 import sys
 import os
 import os.path
