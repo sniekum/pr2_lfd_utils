@@ -46,7 +46,7 @@ if __name__ == '__main__':
     
     required_objects = []
     wm = arWorldModel.ARWorldModel()
-    wm.searchUntilAllFound(required_objects)
+#    wm.searchUntilAllFound(required_objects)
     rospy.spin()
     
     

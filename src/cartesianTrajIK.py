@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('pr2_unstructured_lfd')
+import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy
 import actionlib as al  
 from pr2_controllers_msgs.msg import * 
@@ -443,6 +443,7 @@ class CartesianTrajExecIK():
         
         self.grip_traj_goal.gripper_traj = list(new_grip_traj)
         self.grip_traj_goal.dt = dt
+        print "printing self.grip_traj_goal: ", self.grip_traj_goal
         self.gripper_traj_client.send_goal(self.grip_traj_goal)
         
         self.adjusted_ind = list(new_adj_ind)

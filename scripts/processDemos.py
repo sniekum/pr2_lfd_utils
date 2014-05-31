@@ -48,11 +48,10 @@ if __name__ == '__main__':
     rospy.init_node('ProcessDemosNode')
 
     desiredHz = 10.0
-    whicharm = 1
     is_sim = 0
     use_cart = 1
     white_thresh = -1 #0.001
-    basename = './data/bagfiles/stapler2'
+    basename = './data/bagfiles'
     
     folders = glob.glob(basename + "/*/")
     print folders

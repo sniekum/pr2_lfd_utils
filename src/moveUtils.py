@@ -158,6 +158,11 @@ class ArmMoveUtils:
         if blocking:
             self.gripper_client.wait_for_result()
             
+
+    def commandGripperTraj(self, trajectory):
+        self.grip_traj_goal.gripper_traj = trajectory
+        self.grip_traj_goal.dt = 0.1
+        self.gripper_traj_client.send_goal(self.grip_traj_goal)
     
     #Cancels a gripper trajectory, typically originally sent by cartesianTrajIK
     def cancelGripperTraj(self):

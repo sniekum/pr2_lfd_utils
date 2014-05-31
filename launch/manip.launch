@@ -22,7 +22,7 @@
   	respawn="true" output="screen"/>    
 
   <!-- manipulation prerequisites -->
-  <include file="$(find pr2_unstructured_lfd)/launch/arm_prereq.launch">
+  <include file="$(find pr2_lfd_utils)/launch/arm_prereq.launch">
     <arg name="stereo" value="$(arg stereo)"/>    
     <arg name="use_left_arm" value="$(arg use_left_arm)"/>    
     <arg name="use_right_arm" value="$(arg use_right_arm)"/>    

@@ -1,3 +1,4 @@
+
 <package>
    <description brief="pr2_lfd_utils">
 
@@ -18,7 +19,7 @@
   <depend package="pr2_gripper_traj_action"/>
   <depend package="tf"/>
   <depend package="pr2_controllers_msgs"/>
-  <depend package="timed_trajectory_controller"/>
+<!--  <depend package="timed_trajectory_controller"/> -->
 </package>
 
 

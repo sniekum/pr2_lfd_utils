@@ -1,0 +1,11 @@
+<launch>
+
+  <include file="$(find pr2_lfd_utils)/launch/lfd_teleop_joystick.launch"/>
+  <include file="$(find pr2_lfd_utils)/launch/manip.launch"/>
+  <include file="$(find dmp)/launch/dmp.launch"/>
+  <include file="$(find ar_track_alvar)/launch/pr2_indiv.launch"/>
+  <include file="$(find pr2_gripper_traj_action)/launch/pr2_gripper_traj_action.launch"/>
+  <include file="$(find pr2_lfd_utils)/launch/mannequin_controllers.launch"/>
+  <include file="/etc/ros/openni_head.launch"/>
+
+</launch>

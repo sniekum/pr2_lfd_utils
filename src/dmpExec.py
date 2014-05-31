@@ -58,11 +58,7 @@ class DMPExec:
         self.wm = arWorldModel.ARWorldModel()
         
     
-    #Cancel head following when this object is deleted
-    def __del__(self):
-        self.move_utils.commandARHeadTrack(-1)
-
-
+   
     def makeLFDRequest(self, dims, traj, dt, K_gain, D_gain, num_bases):
         demotraj = dmp.msg.DMPTraj()
         
