@@ -83,4 +83,8 @@ catkin_package(
  DEPENDS 
 )
 
+install(PROGRAMS scripts/moveArmsToSideMoveit.py scripts/moveArmsToSide.py scripts/processDemos.py scripts/recordNode.py scripts/singleReplay.py
+         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 
