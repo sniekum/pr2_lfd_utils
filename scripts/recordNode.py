@@ -33,10 +33,10 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
+import pr2_lfd_utils
 import rospy 
 import numpy as np
-import arWorldModel
+#import arWorldModel
 import recordInteraction
 
 if __name__ == '__main__':
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     ri = recordInteraction.RecordInteraction("data/bagfiles/")
     
     required_objects = []
-    wm = arWorldModel.ARWorldModel()
+    #wm = arWorldModel.ARWorldModel()
 #    wm.searchUntilAllFound(required_objects)
     rospy.spin()
     
