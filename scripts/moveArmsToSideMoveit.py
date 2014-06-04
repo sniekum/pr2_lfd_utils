@@ -40,11 +40,13 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+import pr2_lfd_utils
 
 from std_msgs.msg import String
 
 def moveArmsToSide():
-
+  self.rightGripper = pr2_lfd_utils.Gripper('r')
+  self.leftGripper = pr2_lfd_utils.Gripper('l')
 
   ## First initialize moveit_commander and rospy.
   moveit_commander.roscpp_initialize(sys.argv)
@@ -76,7 +78,8 @@ def moveArmsToSide():
   left_joint_values = [2.115, -0.020, 1.640, -2.070, 1.640, -1.680, 1.398]
   group.set_joint_value_target(left_joint_values)
   plan_left = group.go(None, False)
-
+  
+  self.leftGripper.openGripper()
 
 
 
@@ -90,6 +93,8 @@ def moveArmsToSide():
   right_joint_values = [-2.115, 0.020, -1.640, -2.070, -1.640, -1.680, 1.398]
   group.set_joint_value_target(right_joint_values)
   plan_right = group.go(None, False)
+
+  self.rightGripper.openGripper()
 
   print "============ STOPPING"
 
