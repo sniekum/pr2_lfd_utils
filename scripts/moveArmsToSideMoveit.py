@@ -40,8 +40,6 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
-#import roslib; roslib.load_manifest('pr2_lfd_utils')
-#import pr2_lfd_utils
 from simple_robot_control import gripper
 
 from std_msgs.msg import String
