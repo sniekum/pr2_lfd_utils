@@ -40,13 +40,13 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import pr2_lfd_utils
+import moveitGripper
 
 from std_msgs.msg import String
 
 def moveArmsToSide():
-  self.rightGripper = pr2_lfd_utils.Gripper('r')
-  self.leftGripper = pr2_lfd_utils.Gripper('l')
 
   ## First initialize moveit_commander and rospy.
   moveit_commander.roscpp_initialize(sys.argv)
@@ -62,6 +62,8 @@ def moveArmsToSide():
                                       '/move_group/display_planned_path',
                                       moveit_msgs.msg.DisplayTrajectory)
 
+  rightGripper = moveitGripper.Gripper('r')
+  leftGripper = moveitGripper.Gripper('l')
   ## This interface can be used to plan and execute motions on the left
   ## arm.
   group = moveit_commander.MoveGroupCommander("left_arm")
@@ -79,7 +81,7 @@ def moveArmsToSide():
   group.set_joint_value_target(left_joint_values)
   plan_left = group.go(None, False)
   
-  self.leftGripper.openGripper()
+  leftGripper.closeGripper()
 
 
 
@@ -94,7 +96,7 @@ def moveArmsToSide():
   group.set_joint_value_target(right_joint_values)
   plan_right = group.go(None, False)
 
-  self.rightGripper.openGripper()
+  rightGripper.closeGripper()
 
   print "============ STOPPING"
 
