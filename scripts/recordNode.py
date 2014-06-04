@@ -36,8 +36,8 @@
 import pr2_lfd_utils
 import rospy 
 import numpy as np
-#import arWorldModel
-import recordInteraction
+from pr2_lfd_utils import arWorldModel
+from pr2_lfd_utils import recordInteraction
 
 if __name__ == '__main__':
     rospy.init_node('RecordNode')
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     ri = recordInteraction.RecordInteraction("data/bagfiles/")
     
     required_objects = []
-    #wm = arWorldModel.ARWorldModel()
+    wm = arWorldModel.ARWorldModel()
 #    wm.searchUntilAllFound(required_objects)
     rospy.spin()
     

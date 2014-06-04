@@ -34,11 +34,11 @@
 # author: Scott Niekum
 
 
-import roslib; roslib.load_manifest('pr2_lfd_utils'); 
+#import roslib; roslib.load_manifest('pr2_lfd_utils'); 
 import rospy 
 #from object_position_publisher.msg import *
-import kinematics_msgs.srv 
-import arm_navigation_msgs.srv
+#import kinematics_msgs.srv 
+#import arm_navigation_msgs.srv
 import rosbag
 import pprint
 import pickle
@@ -49,6 +49,8 @@ import generalUtils
 import trajUtils
 import subprocess
 import yaml
+
+from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest
 
 
 class Bag2Mat:
@@ -62,14 +64,14 @@ class Bag2Mat:
         #Set up right/left arm variables     
         if(whicharm == 0):
             self.gripper_topic_name = '/r_gripper_controller/state'
-            fk_serv_name = '/pr2_right_arm_kinematics/get_fk'
+            fk_serv_name = 'compute_fk'
             fk_joints = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
             self.link_name = 'r_wrist_roll_link'
             self.mann_pos_topic_name = '/r_arm_controller_loose/state'
             self.cont_pos_topic_name = '/r_arm_controller/state'       
         else:
             self.gripper_topic_name = '/l_gripper_controller/state'
-            fk_serv_name = '/pr2_left_arm_kinematics/get_fk'
+            fk_serv_name = 'compute_fk'
             fk_joints = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
             self.link_name = 'l_wrist_roll_link'
             self.mann_pos_topic_name = '/l_arm_controller_loose/state'
@@ -88,10 +90,10 @@ class Bag2Mat:
           
         print 'Waiting for forward kinematics service...'
         rospy.wait_for_service(fk_serv_name)
-        self.getPosFK = rospy.ServiceProxy(fk_serv_name, kinematics_msgs.srv.GetPositionFK, persistent=True)
+        self.getPosFK = rospy.ServiceProxy(fk_serv_name, GetPositionFK, persistent=True)
         print "OK"
            
-        self.FKreq = kinematics_msgs.srv.GetPositionFKRequest()
+        self.FKreq = GetPositionFKRequest()
         self.FKreq.header.frame_id = "torso_lift_link"
         self.FKreq.fk_link_names = [self.link_name]
         self.FKreq.robot_state.joint_state.name = fk_joints

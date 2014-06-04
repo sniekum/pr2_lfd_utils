@@ -38,15 +38,16 @@ import rospy
 import numpy as np
 from ar_track_alvar.msg import *
 from pr2_controllers_msgs.msg import * 
-from kinematics_msgs.srv import *
-from arm_navigation_msgs.srv import *
 import geometry_msgs
 import threading
 import singleton
 import generalUtils
-import moveUtils
+#import moveUtils
 from pr2_lfd_utils.msg import *
 #import pr2_lfd_utils.msg
+
+from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest
+
 
 
 #Singleton class representing object data (from AR tags) and arm states
@@ -57,7 +58,7 @@ class ARWorldModel:
     def __init__(self):
         
         self.gen_utils = generalUtils.GeneralUtils()
-        self.move_utils = moveUtils.MoveUtils()
+        #self.move_utils = moveUtils.MoveUtils()
         
         self.obj_lock = threading.Lock()
         self.objects = dict()
@@ -68,23 +69,21 @@ class ARWorldModel:
         self.arm_cart_poses = [[] for i in xrange(2)]
 
         #There must be a planning scene or FK / IK crashes 
-        print 'Waiting for set planning scene service...'
-        rospy.wait_for_service('/environment_server/set_planning_scene_diff')
-        setPlan = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
-        req = SetPlanningSceneDiffRequest()
-        setPlan(req)
-        print 'OK' 
+        #print 'Waiting for set planning scene service...'
+        #rospy.wait_for_service('/environment_server/set_planning_scene_diff')
+        #setPlan = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
+        #req = SetPlanningSceneDiffRequest()
+        #setPlan(req)
+        #print 'OK' 
         
         #Set up right/left FK service connections
         print 'Waiting for forward kinematics services...'
-        rospy.wait_for_service('/pr2_right_arm_kinematics/get_fk')
-        self.getPosFK = []
-        self.getPosFK.append(rospy.ServiceProxy('/pr2_right_arm_kinematics/get_fk', GetPositionFK, persistent=True))
-        self.getPosFK.append(rospy.ServiceProxy('/pr2_left_arm_kinematics/get_fk', GetPositionFK, persistent=True))        
+        rospy.wait_for_service('/compute_fk')
+        self.getPosFK = rospy.ServiceProxy("compute_fk", GetPositionFK)
         print "OK"
         
         #Set up right/left FK service requests
-        self.FKreq = [kinematics_msgs.srv.GetPositionFKRequest(),kinematics_msgs.srv.GetPositionFKRequest()]
+        self.FKreq = [GetPositionFKRequest(), GetPositionFKRequest()]
         self.FKreq[0].header.frame_id = "torso_lift_link"
         self.FKreq[0].fk_link_names = ['r_wrist_roll_link']
         self.FKreq[0].robot_state.joint_state.name = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
@@ -159,7 +158,7 @@ class ARWorldModel:
     def jointsToCart(self, angles, whicharm):
         self.FKreq[whicharm].robot_state.joint_state.position = angles
         try:
-            response = self.getPosFK[whicharm](self.FKreq[whicharm])
+            response = self.getPosFK(self.FKreq[whicharm])
         except rospy.ServiceException, e:
             print self.FKreq[whicharm]
             print "FK service failure: %s" % str(e) 
@@ -175,6 +174,7 @@ class ARWorldModel:
         r.append(cartPos.orientation.y)
         r.append(cartPos.orientation.z)
         r.append(cartPos.orientation.w)
+        #print "Returned FK Solution : ", r
         
         return r
     
@@ -210,13 +210,13 @@ class ARWorldModel:
             
     
     #Look around with the head until all required objects are in the world model
-    def searchUntilAllFound(self, obj_ids):
-        for obj in obj_ids:
-            if not obj in self.objects:
-                self.move_utils.commandARHeadTrack(obj)
-                while not obj in self.objects:
-                    rospy.sleep(1.0)
-        self.move_utils.commandARHeadTrack(-1)
+    #def searchUntilAllFound(self, obj_ids):
+    #    for obj in obj_ids:
+    #        if not obj in self.objects:
+    #            self.move_utils.commandARHeadTrack(obj)
+    #            while not obj in self.objects:
+    #                rospy.sleep(1.0)
+    #    self.move_utils.commandARHeadTrack(-1)
         
     
     #Get all objects poses that world model knows about
@@ -240,10 +240,10 @@ class ARWorldModel:
                 return -1
           
           
-    def getArmCartState(self, whicharm):
-        (grip_pos, dot) = self.move_utils.arm[whicharm].getGripPoseInfo()
-        with self.pose_locks[whicharm]:
-            return list(self.arm_cart_poses[whicharm] + [grip_pos])
+    #def getArmCartState(self, whicharm):
+    #    (grip_pos, dot) = self.move_utils.arm[whicharm].getGripPoseInfo()
+    #    with self.pose_locks[whicharm]:
+    #        return list(self.arm_cart_poses[whicharm] + [grip_pos])
             
             
             
@@ -356,7 +356,7 @@ if __name__ == '__main__':
     task_objects = [0,8]
     
     wm = ARWorldModel()
-    wm.searchUntilAllFound(task_objects)
+    #wm.searchUntilAllFound(task_objects)
     rospy.spin()
     
     
