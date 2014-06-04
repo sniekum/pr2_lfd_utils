@@ -79,7 +79,7 @@ def moveArmsToSide():
 
   left_joint_values = [2.115, -0.020, 1.640, -2.070, 1.640, -1.680, 1.398]
   group.set_joint_value_target(left_joint_values)
-  plan_left = group.go(None, False)
+  plan_left = group.go(None, True)
   
   leftGripper.closeGripper()
 
