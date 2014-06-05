@@ -33,7 +33,7 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
+#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import numpy as np
 import moveUtils

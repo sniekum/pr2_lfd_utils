@@ -33,13 +33,13 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
+#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import actionlib as al 
 from pr2_controllers_msgs.msg import * 
 from trajectory_msgs.msg import *
-import arm_navigation_msgs.srv
-import kinematics_msgs.srv 
+#import arm_navigation_msgs.srv
+#import kinematics_msgs.srv 
 from cartesianTrajIK import *
 import copy
 import threading
@@ -92,12 +92,12 @@ class ArmMoveUtils:
         self.grip_goal = Pr2GripperCommandGoal()
         
         #Connect to the gripper trajectory action server
-        self.gripper_traj_client = al.SimpleActionClient(gripper_traj_serv_name, Pr2GripperTrajAction)
-        while not self.gripper_traj_client.wait_for_server(rospy.Duration(5.0)):
-            print "Waiting for the gripper traj action server..."
-        print "Connected to gripper traj action server"
-        self.grip_traj_goal = Pr2GripperTrajGoal()
-        self.grip_traj_goal.gripper_traj = []
+       # self.gripper_traj_client = al.SimpleActionClient(gripper_traj_serv_name, Pr2GripperTrajAction)
+       # while not self.gripper_traj_client.wait_for_server(rospy.Duration(5.0)):
+       #     print "Waiting for the gripper traj action server..."
+       # print "Connected to gripper traj action server"
+       # self.grip_traj_goal = Pr2GripperTrajGoal()
+       # self.grip_traj_goal.gripper_traj = []
          
         self.goal = JointTrajectoryGoal()
         self.goal.trajectory.joint_names = joint_names;

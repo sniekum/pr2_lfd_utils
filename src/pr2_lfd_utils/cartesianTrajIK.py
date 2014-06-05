@@ -1,17 +1,19 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('pr2_lfd_utils')
+#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy
 import actionlib as al  
 from pr2_controllers_msgs.msg import * 
 from trajectory_msgs.msg import *
-import kinematics_msgs.srv 
-import arm_navigation_msgs.srv
+#import kinematics_msgs.srv 
+#import arm_navigation_msgs.srv
 import numpy as np 
 import numpy.linalg as la
 import matplotlib.pyplot as plt
-from pr2_gripper_traj_action.msg import *
+#from pr2_gripper_traj_action.msg import *
 import pickle
 import math
+
+from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest, GetPositionIK, GetPositionIKRequest
 
 
 class CartesianTrajExecIK():
@@ -23,16 +25,15 @@ class CartesianTrajExecIK():
         #self.vel_limits = [1.0]*7
 
         #Set up right/left arm variables
+        ik_serv_name = '/compute_ik'
+        fk_serv_name = '/compute_fk'
+
         if(whicharm == 0):
-            ik_serv_name = '/pr2_right_arm_kinematics/get_ik'
-            fk_serv_name = '/pr2_right_arm_kinematics/get_fk'
             joint_names = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
             link_name = 'r_wrist_roll_link'
             traj_client_name = '/r_arm_controller/joint_trajectory_action'
             gripper_traj_serv_name = '/r_gripper_traj_action'
         else:
-            ik_serv_name = '/pr2_left_arm_kinematics/get_ik'
-            fk_serv_name = '/pr2_left_arm_kinematics/get_fk'
             joint_names = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
             link_name = 'l_wrist_roll_link'
             traj_client_name = '/l_arm_controller/joint_trajectory_action'
@@ -55,34 +56,39 @@ class CartesianTrajExecIK():
         self.traj_goal.trajectory.points = []
         
         #Connect to the gripper trajectory action server
-        self.gripper_traj_client = al.SimpleActionClient(gripper_traj_serv_name, Pr2GripperTrajAction)
-        while not self.gripper_traj_client.wait_for_server(rospy.Duration(5.0)):
-            print "Waiting for the gripper traj action server..."
-        print "Connected to gripper traj action server"
-        self.grip_traj_goal = Pr2GripperTrajGoal()
-        self.grip_traj_goal.gripper_traj = []
+        #self.gripper_traj_client = al.SimpleActionClient(gripper_traj_serv_name, Pr2GripperTrajAction)
+        #while not self.gripper_traj_client.wait_for_server(rospy.Duration(5.0)):
+        #    print "Waiting for the gripper traj action server..."
+        #print "Connected to gripper traj action server"
+        #self.grip_traj_goal = Pr2GripperTrajGoal()
+        #self.grip_traj_goal.gripper_traj = []
 
         #Set up IK / FK service handles
         print 'Waiting for IK service...'
         rospy.wait_for_service(ik_serv_name)
-        self.getPosIK = rospy.ServiceProxy(ik_serv_name, kinematics_msgs.srv.GetPositionIK, persistent=True)
+        self.getPosIK = rospy.ServiceProxy(ik_serv_name, GetPositionIK, persistent=True)
         print 'OK'
         print 'Waiting for FK service...'
         rospy.wait_for_service(fk_serv_name)
-        self.getPosFK = rospy.ServiceProxy(fk_serv_name, kinematics_msgs.srv.GetPositionFK, persistent=True)
+        self.getPosFK = rospy.ServiceProxy(fk_serv_name, GetPositionFK, persistent=True)
         print "OK"
         
         #Get joint info and set up the constant parts of the IK request and goal
         self.traj_goal.trajectory.joint_names = joint_names
-        self.pos_ik_req = kinematics_msgs.srv.GetPositionIKRequest()
-        self.pos_ik_req.ik_request.ik_seed_state.joint_state.position = [0]*7
-        self.pos_ik_req.ik_request.ik_seed_state.joint_state.name = joint_names
-        self.pos_ik_req.timeout = rospy.Duration(5.0)
+        self.pos_ik_req = GetPositionIKRequest()
+        self.pos_ik_req.ik_request.robot_state.joint_state.position = [0]*7
+        self.pos_ik_req.ik_request.robot_state.joint_state.name = joint_names
+        #self.pos_ik_req.timeout = rospy.Duration(5.0)
+        if(whicharm == 0):
+          self.pos_ik_req.ik_request.group_name = "right_arm"
+        else:
+          self.pos_ik_req.ik_request.group_name = "left_arm"
+
         self.pos_ik_req.ik_request.ik_link_name = link_name
         self.pos_ik_req.ik_request.pose_stamped.header.frame_id = "torso_lift_link";
         
         #Set up the constant parts of the FK request
-        self.FKreq = kinematics_msgs.srv.GetPositionFKRequest()
+        self.FKreq = GetPositionFKRequest()
         self.FKreq.header.frame_id = "torso_lift_link"
         self.FKreq.fk_link_names = [link_name]
         self.FKreq.robot_state.joint_state.name = joint_names

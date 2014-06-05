@@ -40,8 +40,8 @@ from ar_track_alvar.msg import *
 from pr2_controllers_msgs.msg import * 
 import geometry_msgs
 import threading
-import singleton
-import generalUtils
+from pr2_lfd_utils import singleton
+from pr2_lfd_utils import generalUtils
 #import moveUtils
 from pr2_lfd_utils.msg import *
 #import pr2_lfd_utils.msg

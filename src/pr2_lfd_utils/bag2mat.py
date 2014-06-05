@@ -45,8 +45,8 @@ import pickle
 import numpy as np
 import tf
 import sys
-import generalUtils
-import trajUtils
+from pr2_lfd_utils import generalUtils
+from pr2_lfd_utils import trajUtils
 import subprocess
 import yaml
 

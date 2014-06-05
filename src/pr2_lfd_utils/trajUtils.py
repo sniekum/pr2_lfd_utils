@@ -39,12 +39,12 @@ import copy
 #import threading
 import geometry_msgs
 import tf
-import singleton
-import bag2mat
-import generalUtils
-import arWorldModel
+from pr2_lfd_utils import singleton
+#from pr2_lfd_utils import bag2mat
+from pr2_lfd_utils import generalUtils
+from pr2_lfd_utils import arWorldModel
 import numpy as np
-import skillParse
+from pr2_lfd_utils import skillParse
 import glob
 import os.path
 import pickle
