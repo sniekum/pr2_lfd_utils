@@ -42,7 +42,7 @@ import geometry_msgs
 import threading
 from pr2_lfd_utils import singleton
 from pr2_lfd_utils import generalUtils
-#import moveUtils
+from pr2_lfd_utils import moveUtils
 from pr2_lfd_utils.msg import *
 #import pr2_lfd_utils.msg
 
@@ -58,7 +58,7 @@ class ARWorldModel:
     def __init__(self):
         
         self.gen_utils = generalUtils.GeneralUtils()
-        #self.move_utils = moveUtils.MoveUtils()
+        self.move_utils = moveUtils.MoveUtils()
         
         self.obj_lock = threading.Lock()
         self.objects = dict()
@@ -240,10 +240,10 @@ class ARWorldModel:
                 return -1
           
           
-    #def getArmCartState(self, whicharm):
-    #    (grip_pos, dot) = self.move_utils.arm[whicharm].getGripPoseInfo()
-    #    with self.pose_locks[whicharm]:
-    #        return list(self.arm_cart_poses[whicharm] + [grip_pos])
+    def getArmCartState(self, whicharm):
+        (grip_pos, dot) = self.move_utils.arm[whicharm].getGripPoseInfo()
+        with self.pose_locks[whicharm]:
+            return list(self.arm_cart_poses[whicharm] + [grip_pos])
             
             
             

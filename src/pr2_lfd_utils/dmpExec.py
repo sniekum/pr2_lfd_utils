@@ -258,7 +258,7 @@ class DMPExec:
             #is_converged = isConverged(self.wm.getArmCartState(whicharm), goal, goal_thresh)
             is_converged = True
 
-            print "\n"
+            print "DMP Executed \n"
             plan_rate.sleep()
             
             

@@ -130,10 +130,10 @@ if __name__ == '__main__':
         gf = goal_frame
         #no_exec = True
         
-        #if(goal_frame >= 0):
-        #    dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf, marker_goal=marker_goal_data[0])     
-        #else:
-        #    dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf)     
+        if(goal_frame >= 0):
+            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf, marker_goal=marker_goal_data[0])     
+        else:
+            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf)     
 
      
       

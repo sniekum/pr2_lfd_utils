@@ -3,6 +3,7 @@
 import rospy
 import actionlib as al  
 from pr2_controllers_msgs.msg import * 
+from control_msgs.msg import *
 from trajectory_msgs.msg import *
 #import kinematics_msgs.srv 
 #import arm_navigation_msgs.srv
@@ -31,7 +32,7 @@ class CartesianTrajExecIK():
         if(whicharm == 0):
             joint_names = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
             link_name = 'r_wrist_roll_link'
-            traj_client_name = '/r_arm_controller/joint_trajectory_action'
+            traj_client_name = '/r_arm_controller/follow_joint_trajectory'
             gripper_traj_serv_name = '/r_gripper_traj_action'
         else:
             joint_names = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
@@ -48,11 +49,12 @@ class CartesianTrajExecIK():
         #print 'OK' 
         
         #Connect to the joint trajectory action server
-        self.traj_client = al.SimpleActionClient(traj_client_name, JointTrajectoryAction)
+        #self.traj_client = al.SimpleActionClient(traj_client_name, JointTrajectoryAction)
+        self.traj_client = al.SimpleActionClient(traj_client_name, FollowJointTrajectoryAction)
         while not self.traj_client.wait_for_server(rospy.Duration(5.0)):
             print "Waiting for the joint_trajectory_action server..."
         print "OK"
-        self.traj_goal = JointTrajectoryGoal()
+        self.traj_goal = FollowJointTrajectoryGoal()
         self.traj_goal.trajectory.points = []
         
         #Connect to the gripper trajectory action server
@@ -114,7 +116,7 @@ class CartesianTrajExecIK():
         self.pos_ik_req.ik_request.pose_stamped.pose.orientation.y = cart_pos[4]
         self.pos_ik_req.ik_request.pose_stamped.pose.orientation.z = cart_pos[5]
         self.pos_ik_req.ik_request.pose_stamped.pose.orientation.w = cart_pos[6]
-        self.pos_ik_req.ik_request.ik_seed_state.joint_state.position = start_angles
+        self.pos_ik_req.ik_request.robot_state.joint_state.position = start_angles
     
         response = self.getPosIK(self.pos_ik_req)
         
@@ -446,11 +448,13 @@ class CartesianTrajExecIK():
         self.traj_goal.trajectory.points = list(new_arm_traj)
         self.traj_goal.trajectory.header.stamp = splice_time #+ rospy.Duration(dt)    #Add in dt so that point we were heading towards isn't deleted, since it isn't in new plan
         self.traj_client.send_goal(self.traj_goal)
+
+        print "Trajectory goal sent to the joint trajectory action server", self.traj_goal
         
-        self.grip_traj_goal.gripper_traj = list(new_grip_traj)
-        self.grip_traj_goal.dt = dt
-        print "printing self.grip_traj_goal: ", self.grip_traj_goal
-        self.gripper_traj_client.send_goal(self.grip_traj_goal)
+        #self.grip_traj_goal.gripper_traj = list(new_grip_traj)
+        #self.grip_traj_goal.dt = dt
+        #print "printing self.grip_traj_goal: ", self.grip_traj_goal
+        #self.gripper_traj_client.send_goal(self.grip_traj_goal)
         
         self.adjusted_ind = list(new_adj_ind)
         
@@ -459,7 +463,9 @@ class CartesianTrajExecIK():
         #    print p.time_from_start.to_sec(), p.positions
         
         if blocking:
+            print "waiting for traj_client result ..."
             self.traj_client.wait_for_result()
+            print "stopped waiting!"
     
         
 
