@@ -92,11 +92,13 @@ def moveArmsToSide():
 
   right_joint_values = [-2.115, 0.020, -1.640, -2.070, -1.640, -1.680, 1.398]
   group.set_joint_value_target(right_joint_values)
-  plan_right = group.go(None, False)
+  plan_right = group.go(None, True)
 
   rightGripper.closeGripper()
 
   print "============ STOPPING"
+
+  moveit_commander.os._exit(0)
 
 
 if __name__=='__main__':

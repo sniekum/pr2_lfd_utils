@@ -30,14 +30,15 @@ class CartesianTrajExecIK():
         fk_serv_name = '/compute_fk'
 
         if(whicharm == 0):
-            joint_names = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
+            self.joint_names = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
             link_name = 'r_wrist_roll_link'
             traj_client_name = '/r_arm_controller/follow_joint_trajectory'
             gripper_traj_serv_name = '/r_gripper_traj_action'
         else:
-            joint_names = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
+            self.joint_names = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
             link_name = 'l_wrist_roll_link'
-            traj_client_name = '/l_arm_controller/joint_trajectory_action'
+            #traj_client_name = '/l_arm_controller/joint_trajectory_action'
+            traj_client_name = '/l_arm_controller/follow_joint_trajectory'
             gripper_traj_serv_name = '/l_gripper_traj_action'
         
         #There must be a planning scene or FK / IK crashes 
@@ -76,10 +77,10 @@ class CartesianTrajExecIK():
         print "OK"
         
         #Get joint info and set up the constant parts of the IK request and goal
-        self.traj_goal.trajectory.joint_names = joint_names
+        self.traj_goal.trajectory.joint_names = self.joint_names
         self.pos_ik_req = GetPositionIKRequest()
         self.pos_ik_req.ik_request.robot_state.joint_state.position = [0]*7
-        self.pos_ik_req.ik_request.robot_state.joint_state.name = joint_names
+        self.pos_ik_req.ik_request.robot_state.joint_state.name = self.joint_names
         #self.pos_ik_req.timeout = rospy.Duration(5.0)
         if(whicharm == 0):
           self.pos_ik_req.ik_request.group_name = "right_arm"
@@ -93,7 +94,7 @@ class CartesianTrajExecIK():
         self.FKreq = GetPositionFKRequest()
         self.FKreq.header.frame_id = "torso_lift_link"
         self.FKreq.fk_link_names = [link_name]
-        self.FKreq.robot_state.joint_state.name = joint_names
+        self.FKreq.robot_state.joint_state.name = self.joint_names
       
         #Set up empty logging file
         logfile = open('logIK.pickle', 'w')
@@ -118,7 +119,7 @@ class CartesianTrajExecIK():
         self.pos_ik_req.ik_request.pose_stamped.pose.orientation.w = cart_pos[6]
         self.pos_ik_req.ik_request.robot_state.joint_state.position = start_angles
     
-        response = self.getPosIK(self.pos_ik_req)
+        response = self.getPosIK(self.pos_ik_req)        
         
         #Log the IK request / response
         #logfile = open('logIK.pickle', 'a')
@@ -302,8 +303,16 @@ class CartesianTrajExecIK():
             #Get the inverse kinematic solution for joint angles
             resp = self.makeIKRequest(x_vec[i], seed_angles)
 
+            #print "resp: ", resp
+
             if(resp.error_code.val == 1):
-                angles = resp.solution.joint_state.position
+
+                angles = []
+                for name in self.joint_names:
+                    idx = resp.solution.joint_state.name.index(name)
+                    angles.append(resp.solution.joint_state.position[idx])
+
+                #angles = resp.solution.joint_state.position
                 jp = JointTrajectoryPoint()
                 jp.positions = list(angles)
                 jp.time_from_start = rospy.Duration(t)
@@ -373,6 +382,8 @@ class CartesianTrajExecIK():
         new_grip_traj = []
         new_adj_ind = []    #A mapping from the number of the points sent to original points
 
+        #print "x_vec: ", x_vec
+
         #Figure out where the splice is going to happen and what the starting pose will be
         if self.is_first_traj:
             self.is_first_traj = False
@@ -391,8 +402,13 @@ class CartesianTrajExecIK():
         #After fillInIKMissGaps, the resulting traj should be the same length as the one input to followCartTraj
         #Thus, our old/new point index correspondence is still one-to-one
         j_traj = self.cartTrajToJointTraj(seg_start_joints, x_vec, dt)
+        
+        #print "j_traj: ", j_traj        
+        
         j_traj_interp = self.fillInIKMissGaps(seg_start_joints, j_traj, dt)
         
+        #print "j_traj_interp: ", j_traj_interp
+
         #Set up starting conditions for segment
         start_p = JointTrajectoryPoint()
         start_p.time_from_start = rospy.Duration(0.0)
@@ -449,7 +465,7 @@ class CartesianTrajExecIK():
         self.traj_goal.trajectory.header.stamp = splice_time #+ rospy.Duration(dt)    #Add in dt so that point we were heading towards isn't deleted, since it isn't in new plan
         self.traj_client.send_goal(self.traj_goal)
 
-        print "Trajectory goal sent to the joint trajectory action server", self.traj_goal
+        #print "Trajectory goal sent to the joint trajectory action server", self.traj_goal
         
         #self.grip_traj_goal.gripper_traj = list(new_grip_traj)
         #self.grip_traj_goal.dt = dt
@@ -458,7 +474,7 @@ class CartesianTrajExecIK():
         
         self.adjusted_ind = list(new_adj_ind)
         
-        print "Extra time: ", total_extra_time
+        #print "Extra time: ", total_extra_time
         #for p in self.traj_goal.trajectory.points:
         #    print p.time_from_start.to_sec(), p.positions
         

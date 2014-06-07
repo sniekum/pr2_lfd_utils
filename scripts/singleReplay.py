@@ -93,7 +93,7 @@ if __name__ == '__main__':
             sys.exit(0)
         
         #Construct file names
-        basename = 'data/bagfiles/2014_6_4_12_11_47/'
+        basename = 'data/bagfiles/marker_demo/'
         demofile = basename + 'demo' + str(skill_id) + '.bag'
         picklefile = basename + 'Pickle' + str(skill_id) + '.txt'
         matfile = basename + 'Mat' + str(skill_id) + '.txt'
@@ -126,7 +126,7 @@ if __name__ == '__main__':
         
         dmp_exec = dmpExec.DMPExec()
         (tau, dmp_list) = dmp_exec.learnDMP(traj_data)
-        print "dmp result: ", tau, dmp_list
+        #print "dmp result: ", tau, dmp_list
         gf = goal_frame
         #no_exec = True
         

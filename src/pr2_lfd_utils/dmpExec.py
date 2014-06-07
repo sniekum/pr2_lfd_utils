@@ -197,6 +197,7 @@ class DMPExec:
                     
                 x_0_cart.append(gpos)
                 x_dot_0_cart = [0.0]*8
+
                 
                 #Fix starting state so we don't have the wrong aliased quaternion relative to the skill demo beginning point
                 self.gen_utils.minimizeQuaternionError(x_0_cart, demo_start)
@@ -220,9 +221,12 @@ class DMPExec:
                 #Get a DMP plan starting from our current time plus the delay
                 total_points_passed += delay_ind
                 t_0 = (total_points_passed * dt) + planning_delay
+                
+
                     
             resp = self.makePlanRequest(x_0_cart, x_dot_0_cart, t_0, goal, plan_goal_thresh, seg_length, tau, dt, integrate_iter)
             plan = resp.plan
+
             
             #Get gripper data from plan
             gripper_data = []
@@ -248,6 +252,8 @@ class DMPExec:
                 first = True
                 #print
                 continue
+
+
 
             #Execute the cartesian plan
             if(control_frame >= 0):            

@@ -45,6 +45,7 @@ from pr2_lfd_utils import generalUtils
 from pr2_lfd_utils import moveUtils
 from pr2_lfd_utils.msg import *
 #import pr2_lfd_utils.msg
+import sys
 
 from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest
 
@@ -63,9 +64,7 @@ class ARWorldModel:
         self.obj_lock = threading.Lock()
         self.objects = dict()
         
-        self.pose_locks = []
-        self.pose_locks.append(threading.Lock())
-        self.pose_locks.append(threading.Lock())
+        self.pose_locks = threading.Lock()
         self.arm_cart_poses = [[] for i in xrange(2)]
 
         #There must be a planning scene or FK / IK crashes 
@@ -109,17 +108,17 @@ class ARWorldModel:
     
     
     def rArmPosCallback(self, msg):
-        joint_pos = list(msg.actual.positions)
-        cart_pos = self.jointsToCart(joint_pos,0)
-        with self.pose_locks[0]:
-            self.arm_cart_poses[0] = list(cart_pos)
+        with self.pose_locks:
+          joint_pos = list(msg.actual.positions)
+          cart_pos = self.jointsToCart(joint_pos,0)
+          self.arm_cart_poses[0] = list(cart_pos)
     
     
     def lArmPosCallback(self, msg):
-        joint_pos = msg.actual.positions
-        cart_pos = self.jointsToCart(joint_pos,1)
-        with self.pose_locks[1]:
-            self.arm_cart_poses[1] = list(cart_pos)
+        with self.pose_locks:
+          joint_pos = msg.actual.positions
+          cart_pos = self.jointsToCart(joint_pos,1)
+          self.arm_cart_poses[1] = list(cart_pos)
     
     
     def arPoseMarkerCallback(self, msg):
@@ -160,12 +159,11 @@ class ARWorldModel:
         try:
             response = self.getPosFK(self.FKreq[whicharm])
         except rospy.ServiceException, e:
-            print self.FKreq[whicharm]
+            #print self.FKreq[whicharm]
             print "FK service failure: %s" % str(e) 
-            
+
         #Get the cartesian pose of the wrist_roll_joint    
         cartPos = response.pose_stamped[0].pose
-        
         r = []
         r.append(cartPos.position.x)
         r.append(cartPos.position.y)
@@ -183,9 +181,9 @@ class ARWorldModel:
     def clear(self):
         with self.obj_lock:
             self.objects = dict()
-        with self.pose_locks[0]:
+        with self.pose_locks:#[0]:
             self.arm_cart_poses[0] = []
-        with self.pose_locks[1]:
+        with self.pose_locks:#[1]:
             self.arm_cart_poses[1] = []
     
     
@@ -199,7 +197,7 @@ class ARWorldModel:
         
         if arms != []:
             for i in xrange(2):
-                with self.pose_locks[i]:
+                with self.pose_locks:#[i]:
                     self.arm_poses[i] = arms[i]
     
     
@@ -242,7 +240,7 @@ class ARWorldModel:
           
     def getArmCartState(self, whicharm):
         (grip_pos, dot) = self.move_utils.arm[whicharm].getGripPoseInfo()
-        with self.pose_locks[whicharm]:
+        with self.pose_locks:#[whicharm]:
             return list(self.arm_cart_poses[whicharm] + [grip_pos])
             
             

@@ -106,6 +106,7 @@ class Bag2Mat:
     
     def getMatrixRowCart(self, msgs):
         #Do forward kinematics on the current joint angles
+          
         self.FKreq.robot_state.joint_state.position =  msgs[self.pos_topic_name].actual.positions
         try:
             response = self.getPosFK(self.FKreq)
@@ -124,8 +125,12 @@ class Bag2Mat:
         r.append(cartPos.orientation.y)
         r.append(cartPos.orientation.z)
         r.append(cartPos.orientation.w)
-        r.append(msgs[self.gripper_topic_name].set_point)
-        r.append(msgs[self.gripper_topic_name].process_value)
+        if (msgs[self.gripper_topic_name] == -1):
+          r.append(0)
+          r.append(0)
+        else:
+          r.append(msgs[self.gripper_topic_name].set_point)
+          r.append(msgs[self.gripper_topic_name].process_value)
             
         return r
 
