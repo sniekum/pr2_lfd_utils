@@ -38,34 +38,57 @@ import threading
 from pr2_lfd_utils import singleton
 import sys
 
-from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest
+from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest, GetPositionIK, GetPositionIKRequest
 
 
-
-
-#Singleton class representing object data (from AR tags) and arm states
 class KinematicsUtils:
 
     __metaclass__ = singleton.Singleton
 
     def __init__(self):
         
+        ik_serv_name = '/compute_ik'
+        fk_serv_name = '/compute_fk'
+        frame_id = "torso_lift_link"
+        
 
         #Set up right/left FK service connections
         print 'Waiting for forward kinematics services...'
-        rospy.wait_for_service('/compute_fk')
-        self.getPosFK = rospy.ServiceProxy("compute_fk", GetPositionFK)
-        self.getPosFKPersistent = rospy.ServiceProxy("compute_fk", GetPositionFK, persistent = True)
+        rospy.wait_for_service(fk_serv_name)
+        self.getPosFK = rospy.ServiceProxy(fk_serv_name, GetPositionFK)
+        self.getPosFKPersistent = rospy.ServiceProxy(fk_serv_name, GetPositionFK, persistent = True)
         print "OK"
         
         #Set up right/left FK service requests
         self.FKreq = [GetPositionFKRequest(), GetPositionFKRequest()]
-        self.FKreq[0].header.frame_id = "torso_lift_link"
+        self.FKreq[0].header.frame_id = frame_id
         self.FKreq[0].fk_link_names = ['r_wrist_roll_link']
         self.FKreq[0].robot_state.joint_state.name = self.getJointNames(0)
-        self.FKreq[1].header.frame_id = "torso_lift_link"
+        self.FKreq[1].header.frame_id = frame_id
         self.FKreq[1].fk_link_names = ['l_wrist_roll_link']
         self.FKreq[1].robot_state.joint_state.name = self.getJointNames(1)
+
+
+
+        #Set up right/left IK service connections
+        print 'Waiting for inverse kinematics services...'
+        rospy.wait_for_service(ik_serv_name)
+        self.getPosIK = rospy.ServiceProxy(ik_serv_name, GetPositionIK)
+        self.getPosIKPersistent = rospy.ServiceProxy(ik_serv_name, GetPositionIK, persistent=True)
+        print 'OK'
+
+        #Set up right/left IK service requests
+        self.IKreq = [GetPositionIKRequest(), GetPositionIKRequest()]
+        self.IKreq[0].ik_request.robot_state.joint_state.position = [0]*7
+        self.IKreq[0].ik_request.robot_state.joint_state.name = self.getJointNames(0)
+        self.IKreq[0].ik_request.group_name = "right_arm"
+        self.IKreq[0].ik_request.ik_link_name = 'r_wrist_roll_link'
+        self.IKreq[0].ik_request.pose_stamped.header.frame_id = "torso_lift_link";
+        self.IKreq[1].ik_request.robot_state.joint_state.position = [0]*7
+        self.IKreq[1].ik_request.robot_state.joint_state.name = self.getJointNames(1)
+        self.IKreq[1].ik_request.group_name = "left_arm"
+        self.IKreq[1].ik_request.ik_link_name = 'l_wrist_roll_link'
+        self.IKreq[1].ik_request.pose_stamped.header.frame_id = "torso_lift_link";
        
         
     
@@ -93,6 +116,26 @@ class KinematicsUtils:
         r.append(cartPos.orientation.w)
         
         return r
+
+    #Converts cartesian position of the end effector to joint angles using start_angles as seed points
+    def getIK(self, cart_pos, start_angles, whicharm, persistent = True):
+        self.IKreq[whicharm].ik_request.pose_stamped.pose.position.x = cart_pos[0]
+        self.IKreq[whicharm].ik_request.pose_stamped.pose.position.y = cart_pos[1]
+        self.IKreq[whicharm].ik_request.pose_stamped.pose.position.z = cart_pos[2]
+        self.IKreq[whicharm].ik_request.pose_stamped.pose.orientation.x = cart_pos[3]
+        self.IKreq[whicharm].ik_request.pose_stamped.pose.orientation.y = cart_pos[4]
+        self.IKreq[whicharm].ik_request.pose_stamped.pose.orientation.z = cart_pos[5]
+        self.IKreq[whicharm].ik_request.pose_stamped.pose.orientation.w = cart_pos[6]
+        self.IKreq[whicharm].ik_request.robot_state.joint_state.position = start_angles
+        if (persistent):
+          response = self.getPosIKPersistent(self.IKreq[whicharm])
+        else:
+          response = self.getPosIK(self.IKreq[whicharm])
+   
+        return response
+
+
+
     
     #Returns joint names for the indicated arm(0=right, 1=left)
     def getJointNames(self, whicharm):
