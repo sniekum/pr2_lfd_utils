@@ -47,10 +47,9 @@ import tf
 import sys
 from pr2_lfd_utils import generalUtils
 from pr2_lfd_utils import trajUtils
+from pr2_lfd_utils import kinematicsUtils
 import subprocess
 import yaml
-
-from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest
 
 
 class Bag2Mat:
@@ -60,45 +59,23 @@ class Bag2Mat:
         self.is_sim = is_sim
         self.gen_utils = generalUtils.GeneralUtils()
         self.traj_utils = trajUtils.TrajUtils()
+        self.kinematics_utils = kinematicsUtils.KinematicsUtils()
         
         #Set up right/left arm variables     
         if(whicharm == 0):
             self.gripper_topic_name = '/r_gripper_controller/state'
-            fk_serv_name = 'compute_fk'
-            fk_joints = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
-            self.link_name = 'r_wrist_roll_link'
             self.mann_pos_topic_name = '/r_arm_controller_loose/state'
             self.cont_pos_topic_name = '/r_arm_controller/state'       
         else:
             self.gripper_topic_name = '/l_gripper_controller/state'
-            fk_serv_name = 'compute_fk'
-            fk_joints = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
-            self.link_name = 'l_wrist_roll_link'
             self.mann_pos_topic_name = '/l_arm_controller_loose/state'
             self.cont_pos_topic_name = '/l_arm_controller/state' 
         
         #Fill this in later, once we figure out what we are currently looking at
         self.pos_topic_name = ''
+
+        self.whicharm = whicharm
          
-        #There must be a planning scene or FK / IK crashes 
-        #print 'Waiting for set planning scene service...'
-        #rospy.wait_for_service('/environment_server/set_planning_scene_diff')
-        #setPlan = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', arm_navigation_msgs.srv.SetPlanningSceneDiff)
-        #req = arm_navigation_msgs.srv.SetPlanningSceneDiffRequest()
-        #setPlan(req)
-        #print 'OK' 
-          
-        print 'Waiting for forward kinematics service...'
-        rospy.wait_for_service(fk_serv_name)
-        self.getPosFK = rospy.ServiceProxy(fk_serv_name, GetPositionFK, persistent=True)
-        print "OK"
-           
-        self.FKreq = GetPositionFKRequest()
-        self.FKreq.header.frame_id = "torso_lift_link"
-        self.FKreq.fk_link_names = [self.link_name]
-        self.FKreq.robot_state.joint_state.name = fk_joints
-
-
     def getMatrixRowJoint(self, msgs):
         r = list(msgs[self.pos_topic_name].actual.positions)
         return r
@@ -106,25 +83,7 @@ class Bag2Mat:
     
     def getMatrixRowCart(self, msgs):
         #Do forward kinematics on the current joint angles
-          
-        self.FKreq.robot_state.joint_state.position =  msgs[self.pos_topic_name].actual.positions
-        try:
-            response = self.getPosFK(self.FKreq)
-        except rospy.ServiceException, e:
-            print "FK service failure: %s" % str(e) 
-            sys.exit(0)
-            
-        #Get the cartesian pose of the wrist_roll_joint    
-        cartPos = response.pose_stamped[0].pose
-        
-        r = []
-        r.append(cartPos.position.x)
-        r.append(cartPos.position.y)
-        r.append(cartPos.position.z)
-        r.append(cartPos.orientation.x)
-        r.append(cartPos.orientation.y)
-        r.append(cartPos.orientation.z)
-        r.append(cartPos.orientation.w)
+        r = self.kinematics_utils.getFK(msgs[self.pos_topic_name].actual.positions, self.whicharm, True)
         if (msgs[self.gripper_topic_name] == -1):
           r.append(0)
           r.append(0)

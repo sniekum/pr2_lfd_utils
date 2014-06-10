@@ -36,6 +36,7 @@
 import rospy 
 import threading
 from pr2_lfd_utils import singleton
+import sys
 
 from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest
 
@@ -49,12 +50,12 @@ class KinematicsUtils:
 
     def __init__(self):
         
-        self.pose_locks = threading.Lock()
 
         #Set up right/left FK service connections
         print 'Waiting for forward kinematics services...'
         rospy.wait_for_service('/compute_fk')
         self.getPosFK = rospy.ServiceProxy("compute_fk", GetPositionFK)
+        self.getPosFKPersistent = rospy.ServiceProxy("compute_fk", GetPositionFK, persistent = True)
         print "OK"
         
         #Set up right/left FK service requests
@@ -69,12 +70,16 @@ class KinematicsUtils:
         
     
     #Converts joint angles to cartesian pose of end effector fo the indicated arm (0=right, 1=left)
-    def getFK(self, angles, whicharm):
+    def getFK(self, angles, whicharm, persistent = False):
         self.FKreq[whicharm].robot_state.joint_state.position = angles
         try:
-            response = self.getPosFK(self.FKreq[whicharm])
+            if (persistent):
+              response = self.getPosFKPersistent(self.FKreq[whicharm])
+            else:
+              response = self.getPosFK(self.FKreq[whicharm])
         except rospy.ServiceException, e:
             print "FK service failure: %s" % str(e) 
+            sys.exit(0)
 
         #Get the cartesian pose of the wrist_roll_joint    
         cartPos = response.pose_stamped[0].pose

@@ -45,9 +45,6 @@ from pr2_lfd_utils import kinematicsUtils
 from pr2_lfd_utils.msg import *
 import sys
 
-from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest
-
-
 
 #Singleton class representing object data (from AR tags) and arm states
 class ARWorldModel:
