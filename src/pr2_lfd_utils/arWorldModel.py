@@ -176,13 +176,13 @@ class ARWorldModel:
             
     
     #Look around with the head until all required objects are in the world model
-    #def searchUntilAllFound(self, obj_ids):
-    #    for obj in obj_ids:
-    #        if not obj in self.objects:
-    #            self.move_utils.commandARHeadTrack(obj)
-    #            while not obj in self.objects:
-    #                rospy.sleep(1.0)
-    #    self.move_utils.commandARHeadTrack(-1)
+    def searchUntilAllFound(self, obj_ids):
+        for obj in obj_ids:
+            if not obj in self.objects:
+                self.move_utils.commandARHeadTrack(obj)
+                while not obj in self.objects:
+                    rospy.sleep(1.0)
+        self.move_utils.commandARHeadTrack(-1)
         
     
     #Get all objects poses that world model knows about

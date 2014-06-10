@@ -49,7 +49,11 @@ class KinematicsUtils:
         
         ik_serv_name = '/compute_ik'
         fk_serv_name = '/compute_fk'
-        frame_id = "torso_lift_link"
+        self.frame_id = "torso_lift_link"
+        self.r_link_name = 'r_wrist_roll_link'
+        self.l_link_name = 'l_wrist_roll_link'
+        self.r_group_name = 'right_arm'
+        self.l_group_name = 'left_arm'
         
 
         #Set up right/left FK service connections
@@ -61,11 +65,11 @@ class KinematicsUtils:
         
         #Set up right/left FK service requests
         self.FKreq = [GetPositionFKRequest(), GetPositionFKRequest()]
-        self.FKreq[0].header.frame_id = frame_id
-        self.FKreq[0].fk_link_names = ['r_wrist_roll_link']
+        self.FKreq[0].header.frame_id = self.frame_id
+        self.FKreq[0].fk_link_names = [self.r_link_name]
         self.FKreq[0].robot_state.joint_state.name = self.getJointNames(0)
-        self.FKreq[1].header.frame_id = frame_id
-        self.FKreq[1].fk_link_names = ['l_wrist_roll_link']
+        self.FKreq[1].header.frame_id = self.frame_id
+        self.FKreq[1].fk_link_names = [self.l_link_name]
         self.FKreq[1].robot_state.joint_state.name = self.getJointNames(1)
 
 
@@ -81,14 +85,14 @@ class KinematicsUtils:
         self.IKreq = [GetPositionIKRequest(), GetPositionIKRequest()]
         self.IKreq[0].ik_request.robot_state.joint_state.position = [0]*7
         self.IKreq[0].ik_request.robot_state.joint_state.name = self.getJointNames(0)
-        self.IKreq[0].ik_request.group_name = "right_arm"
-        self.IKreq[0].ik_request.ik_link_name = 'r_wrist_roll_link'
-        self.IKreq[0].ik_request.pose_stamped.header.frame_id = "torso_lift_link";
+        self.IKreq[0].ik_request.group_name = self.r_group_name
+        self.IKreq[0].ik_request.ik_link_name = self.r_link_name
+        self.IKreq[0].ik_request.pose_stamped.header.frame_id = self.frame_id
         self.IKreq[1].ik_request.robot_state.joint_state.position = [0]*7
         self.IKreq[1].ik_request.robot_state.joint_state.name = self.getJointNames(1)
-        self.IKreq[1].ik_request.group_name = "left_arm"
-        self.IKreq[1].ik_request.ik_link_name = 'l_wrist_roll_link'
-        self.IKreq[1].ik_request.pose_stamped.header.frame_id = "torso_lift_link";
+        self.IKreq[1].ik_request.group_name = self.l_group_name
+        self.IKreq[1].ik_request.ik_link_name = self.l_link_name
+        self.IKreq[1].ik_request.pose_stamped.header.frame_id = self.frame_id
        
         
     
@@ -144,6 +148,21 @@ class KinematicsUtils:
         else:
           controller = "l_arm_controller"    
         return rospy.get_param(controller + "/joints");
+
+    def getLinkName(self, whicharm):  
+        if (whicharm == 0):
+          return self.r_link_name
+        else:
+          return self.l_link_name
+
+    def getGroupName(self, whicharm):  
+        if (whicharm == 0):
+          return self.r_group_name
+        else:
+          return self.l_group_name
+
+    def getFrameId(self):  
+        return self.frame_id
     
         
 if __name__ == '__main__':   

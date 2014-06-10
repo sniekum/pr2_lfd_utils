@@ -22,13 +22,17 @@ import geometry_msgs.msg
 from pr2_lfd_utils import kinematicsUtils
 
 from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest, GetPositionIK, GetPositionIKRequest
-
+from simple_robot_control import Arm
 
 class CartesianTrajExecIK():
     
     #0=right, 1=left
     def __init__(self, whicharm):
-
+        
+        if (whicharm == 0):
+          self.arm = Arm('r')
+        else:
+          self.arm = Arm('l')
 
         self.kinematics_utils = kinematicsUtils.KinematicsUtils()
         self.whicharm = whicharm
@@ -37,24 +41,7 @@ class CartesianTrajExecIK():
         self.vel_limits = [0.8, 0.8, 2.0, 2.0, 3.0, 3.0, 10.0]
         #self.vel_limits = [1.0]*7
 
-      
-
-        if(whicharm == 0):
-            traj_client_name = '/r_arm_controller/follow_joint_trajectory'
-            gripper_traj_serv_name = '/r_gripper_traj_action'
-        else:
-            #traj_client_name = '/l_arm_controller/joint_trajectory_action'
-            traj_client_name = '/l_arm_controller/follow_joint_trajectory'
-            gripper_traj_serv_name = '/l_gripper_traj_action'
-        
-        
-        #Connect to the joint trajectory action server
-        #self.traj_client = al.SimpleActionClient(traj_client_name, JointTrajectoryAction)
-        self.traj_client = al.SimpleActionClient(traj_client_name, FollowJointTrajectoryAction)
-        while not self.traj_client.wait_for_server(rospy.Duration(5.0)):
-            print "Waiting for the joint_trajectory_action server..."
-        print "OK"
-        self.traj_goal = FollowJointTrajectoryGoal()
+        self.traj_goal = JointTrajectoryGoal()
         self.traj_goal.trajectory.points = []
         
         #Connect to the gripper trajectory action server
@@ -420,26 +407,20 @@ class CartesianTrajExecIK():
         #Send trajs to joint action controller and gripper traj action controller
         self.traj_goal.trajectory.points = list(new_arm_traj)
         self.traj_goal.trajectory.header.stamp = splice_time #+ rospy.Duration(dt)    #Add in dt so that point we were heading towards isn't deleted, since it isn't in new plan
-        self.traj_client.send_goal(self.traj_goal)
+        self.arm.sendTraj(self.traj_goal)
 
-        #print "Trajectory goal sent to the joint trajectory action server", self.traj_goal
         
         #self.grip_traj_goal.gripper_traj = list(new_grip_traj)
         #self.grip_traj_goal.dt = dt
         #print "printing self.grip_traj_goal: ", self.grip_traj_goal
         #self.gripper_traj_client.send_goal(self.grip_traj_goal)
         
-        self.adjusted_ind = list(new_adj_ind)
+        #self.adjusted_ind = list(new_adj_ind)
         
         #print "Extra time: ", total_extra_time
         #for p in self.traj_goal.trajectory.points:
         #    print p.time_from_start.to_sec(), p.positions
         
-        if blocking:
-            print "waiting for traj_client result ..."
-            self.traj_client.wait_for_result()
-            print "stopped waiting!"
-    
         
 
 if __name__ == '__main__':
