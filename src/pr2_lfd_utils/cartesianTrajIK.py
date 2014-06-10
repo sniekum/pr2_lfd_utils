@@ -14,6 +14,12 @@ import matplotlib.pyplot as plt
 import pickle
 import math
 
+import sys
+import copy
+import moveit_commander
+import moveit_msgs.msg
+import geometry_msgs.msg
+
 from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest, GetPositionIK, GetPositionIKRequest
 
 
@@ -373,6 +379,39 @@ class CartesianTrajExecIK():
         return interp_points
                    
         
+    # it is not working yet. Question posted on the moveit mailing list
+    def followCartTrajMoveit(self, x_vec, dt):
+
+        moveit_commander.roscpp_initialize(sys.argv)
+        group = moveit_commander.MoveGroupCommander("left_arm")
+
+        waypoints = []
+        waypoints.append(group.get_current_pose().pose)
+        
+
+        for i in range(len(x_vec)): 
+        
+            #Make sure quaternion is normalized
+            x_vec[i][3:7] = x_vec[i][3:7] / la.norm(x_vec[i][3:7])
+
+            wpose = geometry_msgs.msg.Pose()
+            wpose.position.x = x_vec[i][0]
+            wpose.position.y = x_vec[i][1]
+            wpose.position.z = x_vec[i][2]
+            wpose.orientation.x = x_vec[i][3]
+            wpose.orientation.y = x_vec[i][4]
+            wpose.orientation.z = x_vec[i][5]
+            wpose.orientation.w = x_vec[i][6]
+            waypoints.append(copy.deepcopy(wpose))
+
+        (plan, fraction) = group.compute_cartesian_path(
+                             waypoints,   # waypoints to follow
+                             dt,          # eef_step
+                             0.0)         # jump_threshold
+        print "fraction: ", fraction
+        print "plan: ", plan
+        group.execute(plan)        
+
   
     #Follows a cartesian trajectory and tries to synchronize the gripper trajectory with it       
     def followCartTraj(self, x_vec, grip_traj, dt, start_angles, splice_time, blocking):   
@@ -382,7 +421,7 @@ class CartesianTrajExecIK():
         new_grip_traj = []
         new_adj_ind = []    #A mapping from the number of the points sent to original points
 
-        #print "x_vec: ", x_vec
+        print "x_vec: ", x_vec
 
         #Figure out where the splice is going to happen and what the starting pose will be
         if self.is_first_traj:

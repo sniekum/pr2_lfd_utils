@@ -227,6 +227,7 @@ class ArmMoveUtils:
 
         self.cart_exec.followCartTraj(x_vec, grip_traj, dt, start_angles, splice_time, blocking)
     
+        #self.cart_exec.followCartTrajMoveit(x_vec, dt)
     
     def getCartTrajStatsAtTime(self,time):
         delay_ind = self.cart_exec.getOrigTrajPointAtTime(time)
