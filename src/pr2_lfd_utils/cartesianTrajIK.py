@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy
 import actionlib as al  
 from pr2_controllers_msgs.msg import * 
 from control_msgs.msg import *
 from trajectory_msgs.msg import *
-#import kinematics_msgs.srv 
-#import arm_navigation_msgs.srv
 import numpy as np 
 import numpy.linalg as la
 import matplotlib.pyplot as plt

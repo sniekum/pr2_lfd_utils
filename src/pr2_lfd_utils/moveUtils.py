@@ -33,38 +33,36 @@
 #
 # author: Scott Niekum
 
-#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import actionlib as al 
 from pr2_controllers_msgs.msg import * 
 from trajectory_msgs.msg import *
-#import arm_navigation_msgs.srv
-#import kinematics_msgs.srv 
 from cartesianTrajIK import *
 import copy
 import threading
 import geometry_msgs
-#from pr2_ar_head_track_action.msg import *
 import sys
 from std_msgs.msg import *
 import numpy as np
 import numpy.linalg as la
 import singleton
-
+from pr2_lfd_utils import kinematicsUtils
 
 class ArmMoveUtils:
     #0=right, 1=left
     def __init__(self, whicharm):
         #Set up right/left arm variables
         self.whicharm = whicharm
+        self.kinematics_utils = kinematicsUtils.KinematicsUtils()
+
         if(whicharm == 0):
             traj_serv_name = '/r_arm_controller/joint_trajectory_action'
             traj_segment_name = 'r_arm_controller/current_segment'
             gripper_topic_name = '/r_gripper_controller/state'
             gripper_serv_name = '/r_gripper_controller/gripper_action'
             pos_topic_name = '/r_arm_controller/state'
-            joint_names = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
-            self.link_name = 'r_wrist_roll_link'
+            joint_names = self.kinematics_utils.getJointNames(0)
+            self.link_name = self.kinematics_utils.getLinkName(0)
             gripper_traj_serv_name = '/r_gripper_traj_action'
         else:
             traj_serv_name = '/l_arm_controller/joint_trajectory_action'
@@ -72,8 +70,8 @@ class ArmMoveUtils:
             gripper_topic_name = '/l_gripper_controller/state'
             gripper_serv_name = '/l_gripper_controller/gripper_action'
             pos_topic_name = '/l_arm_controller/state'
-            joint_names = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
-            self.link_name = 'l_wrist_roll_link'
+            joint_names = self.kinematics_utils.getJointNames(1)
+            self.link_name = self.kinematics_utils.getLinkName(1)
             gripper_traj_serv_name = 'l_gripper_traj_action'
         
         self.traj_client = al.SimpleActionClient(traj_serv_name,JointTrajectoryAction)

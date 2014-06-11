@@ -33,14 +33,11 @@
 #
 # author: Scott Niekum
 
-#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import copy
-#import threading
 import geometry_msgs
 import tf
 from pr2_lfd_utils import singleton
-#from pr2_lfd_utils import bag2mat
 from pr2_lfd_utils import generalUtils
 from pr2_lfd_utils import arWorldModel
 import numpy as np
