@@ -20,6 +20,7 @@ from pr2_lfd_utils import kinematicsUtils
 
 from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest, GetPositionIK, GetPositionIKRequest
 from simple_robot_control import Arm
+from pr2_gripper_traj_action.msg import *
 
 class CartesianTrajExecIK():
     
@@ -28,8 +29,10 @@ class CartesianTrajExecIK():
         
         if (whicharm == 0):
           self.arm = Arm('r')
+          gripper_traj_serv_name = '/r_gripper_traj_action'
         else:
           self.arm = Arm('l')
+          gripper_traj_serv_name = '/l_gripper_traj_action'
 
         self.kinematics_utils = kinematicsUtils.KinematicsUtils()
         self.whicharm = whicharm
@@ -42,12 +45,12 @@ class CartesianTrajExecIK():
         self.traj_goal.trajectory.points = []
         
         #Connect to the gripper trajectory action server
-        #self.gripper_traj_client = al.SimpleActionClient(gripper_traj_serv_name, Pr2GripperTrajAction)
-        #while not self.gripper_traj_client.wait_for_server(rospy.Duration(5.0)):
-        #    print "Waiting for the gripper traj action server..."
-        #print "Connected to gripper traj action server"
-        #self.grip_traj_goal = Pr2GripperTrajGoal()
-        #self.grip_traj_goal.gripper_traj = []
+        self.gripper_traj_client = al.SimpleActionClient(gripper_traj_serv_name, Pr2GripperTrajAction)
+        while not self.gripper_traj_client.wait_for_server(rospy.Duration(5.0)):
+            print "Waiting for the gripper traj action server..."
+        print "Connected to gripper traj action server"
+        self.grip_traj_goal = Pr2GripperTrajGoal()
+        self.grip_traj_goal.gripper_traj = []
 
         self.joint_names = self.kinematics_utils.getJointNames(self.whicharm)
         self.traj_goal.trajectory.joint_names = self.joint_names
@@ -406,11 +409,10 @@ class CartesianTrajExecIK():
         self.traj_goal.trajectory.header.stamp = splice_time #+ rospy.Duration(dt)    #Add in dt so that point we were heading towards isn't deleted, since it isn't in new plan
         self.arm.sendTraj(self.traj_goal)
 
-        
-        #self.grip_traj_goal.gripper_traj = list(new_grip_traj)
-        #self.grip_traj_goal.dt = dt
-        #print "printing self.grip_traj_goal: ", self.grip_traj_goal
-        #self.gripper_traj_client.send_goal(self.grip_traj_goal)
+        self.grip_traj_goal.gripper_traj = list(new_grip_traj)
+        self.grip_traj_goal.dt = dt
+        print "printing self.grip_traj_goal: ", self.grip_traj_goal
+        self.gripper_traj_client.send_goal(self.grip_traj_goal)
         
         #self.adjusted_ind = list(new_adj_ind)
         

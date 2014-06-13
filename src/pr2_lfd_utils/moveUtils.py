@@ -47,6 +47,7 @@ import numpy as np
 import numpy.linalg as la
 import singleton
 from pr2_lfd_utils import kinematicsUtils
+from pr2_gripper_traj_action.msg import *
 
 class ArmMoveUtils:
     #0=right, 1=left
@@ -90,12 +91,12 @@ class ArmMoveUtils:
         self.grip_goal = Pr2GripperCommandGoal()
         
         #Connect to the gripper trajectory action server
-       # self.gripper_traj_client = al.SimpleActionClient(gripper_traj_serv_name, Pr2GripperTrajAction)
-       # while not self.gripper_traj_client.wait_for_server(rospy.Duration(5.0)):
-       #     print "Waiting for the gripper traj action server..."
-       # print "Connected to gripper traj action server"
-       # self.grip_traj_goal = Pr2GripperTrajGoal()
-       # self.grip_traj_goal.gripper_traj = []
+        self.gripper_traj_client = al.SimpleActionClient(gripper_traj_serv_name, Pr2GripperTrajAction)
+        while not self.gripper_traj_client.wait_for_server(rospy.Duration(5.0)):
+            print "Waiting for the gripper traj action server..."
+        print "Connected to gripper traj action server"
+        self.grip_traj_goal = Pr2GripperTrajGoal()
+        self.grip_traj_goal.gripper_traj = []
          
         self.goal = JointTrajectoryGoal()
         self.goal.trajectory.joint_names = joint_names;
