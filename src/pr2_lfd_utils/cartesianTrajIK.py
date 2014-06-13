@@ -407,12 +407,13 @@ class CartesianTrajExecIK():
         #Send trajs to joint action controller and gripper traj action controller
         self.traj_goal.trajectory.points = list(new_arm_traj)
         self.traj_goal.trajectory.header.stamp = splice_time #+ rospy.Duration(dt)    #Add in dt so that point we were heading towards isn't deleted, since it isn't in new plan
-        self.arm.sendTraj(self.traj_goal)
-
         self.grip_traj_goal.gripper_traj = list(new_grip_traj)
         self.grip_traj_goal.dt = dt
-        print "printing self.grip_traj_goal: ", self.grip_traj_goal
+        
+        #print "printing self.grip_traj_goal: ", self.grip_traj_goal
         self.gripper_traj_client.send_goal(self.grip_traj_goal)
+        self.arm.sendTraj(self.traj_goal)
+
         
         #self.adjusted_ind = list(new_adj_ind)
         
