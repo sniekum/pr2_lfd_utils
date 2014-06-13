@@ -55,6 +55,9 @@ def moveArmsToSide():
 
   left_joint_values = [2.115, -0.020, 1.640, -2.070, 1.640, -1.680, 1.398]
   right_joint_values = [-2.115, 0.020, -1.640, -2.070, -1.640, -1.680, 1.398]
+
+  leftGripper.openGripper()
+  rightGripper.openGripper()
   
   leftArm.goToAngle(left_joint_values, 2.0)
   rightArm.goToAngle(right_joint_values, 2.0)
