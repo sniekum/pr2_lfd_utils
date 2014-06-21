@@ -33,7 +33,6 @@
 #
 # author: Scott Niekum
 
-#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import numpy as np
 import matplotlib.pyplot as plt
