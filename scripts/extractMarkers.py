@@ -88,7 +88,8 @@ if __name__ == '__main__':
         for i in range (len(diff)):
           dist_data.append( LA.norm( diff[i][0:3] ) )
 
-        print "dist_data: ", dist_data
+        print "dist_data: mean: ", np.mean(dist_data),  "median: ", np.median(dist_data), "std: ", np.std(dist_data)
+        
 
         #1D
         #draw_utils.plotTraj(drawable, 0.1)
