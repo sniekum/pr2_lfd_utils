@@ -44,6 +44,8 @@ from pr2_lfd_utils import drawUtils
 import sys
 import os
 import os.path
+import matplotlib.pyplot as plt
+from numpy import linalg as LA
       
 if __name__ == '__main__':
     try:
@@ -75,13 +77,31 @@ if __name__ == '__main__':
         marker_difference_data = []
 
         for i in range (len(marker_ids)):
-          print marker_ids[i]
+          print "extracting marker IDs: ", marker_ids[i]
           marker_goal_data.append(traj_utils.createMarkerTrajFromFile(markerfile, int(marker_ids[i]), -1))
           if ((i%2) == 1):
             marker_difference_data.append(traj_utils.createDifferenceTrajFromFile(markerfile, int(marker_ids[i-1]), int(marker_ids[i])))
             [diff, drawable] = traj_utils.createDifferenceTrajFromFile(markerfile, int(marker_ids[i-1]), int(marker_ids[i]))
+
+
+        dist_data = []
+        for i in range (len(diff)):
+          dist_data.append( LA.norm( diff[i][0:3] ) )
+
+        print "dist_data: ", dist_data
+
+        #1D
+        #draw_utils.plotTraj(drawable, 0.1)
+
+        draw_utils.plotTwoTraj3D(marker_goal_data[0], marker_goal_data[1])
         
-        print drawable
+        #3D single
+        #draw_utils.plotTraj3D(marker_goal_data[0])
+        #draw_utils.plotTraj3D(marker_goal_data[1])
+        #3D        
+        #draw_utils.plotTraj3D(diff)
+        plt.show()
+#        print "marker goal data: ", marker_goal_data
 
     except rospy.ROSInterruptException:
         print "program interrupted before completion"
