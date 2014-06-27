@@ -132,9 +132,9 @@ if __name__ == '__main__':
 
         
         if(goal_frame >= 0):
-            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf, marker_goal=marker_goal_data[0])     
+            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf, marker_goal=marker_goal_data[0], compliant = True)     
         else:
-            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf)     
+            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf, compliant = True)     
 
      
       

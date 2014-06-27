@@ -144,7 +144,8 @@ class DMPExec:
                    use_head_tracking = False,
                    control_frame = -1,
                    goal_frame = -1,
-                   marker_goal = None):
+                   marker_goal = None,
+                   compliant = False):
                    
         #Get ready to replay DMP under current conditions
         plan_rate = rospy.Rate(plan_rate)
@@ -256,9 +257,9 @@ class DMPExec:
 
             #Execute the cartesian plan
             if(control_frame >= 0):            
-                self.move_utils.arm[whicharm].followCartTraj(adj_plan, gripper_data, dt, splice_time, True)
+                self.move_utils.arm[whicharm].followCartTraj(adj_plan, gripper_data, dt, splice_time, True, compliant)
             else:
-                self.move_utils.arm[whicharm].followCartTrajPlan(plan, gripper_data, dt, splice_time, True)
+                self.move_utils.arm[whicharm].followCartTrajPlan(plan, gripper_data, dt, splice_time, True, compliant)
 
             #is_converged = isConverged(self.wm.getArmCartState(whicharm), goal, goal_thresh)
             is_converged = True

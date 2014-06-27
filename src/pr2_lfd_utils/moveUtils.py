@@ -204,16 +204,16 @@ class ArmMoveUtils:
         print "Joint trajectory done"
     
     
-    def followCartTraj(self, x_vec, grip_traj, dt, splice_time, blocking):
+    def followCartTraj(self, x_vec, grip_traj, dt, splice_time, blocking, compliant):
         self.pos_lock.acquire()
         start_angles = copy.deepcopy(self.curr_pos)
         self.pos_lock.release()
         self.curr_traj_point = -1
         
-        self.cart_exec.followCartTraj(x_vec, grip_traj, dt, start_angles, splice_time, blocking)
+        self.cart_exec.followCartTraj(x_vec, grip_traj, dt, start_angles, splice_time, blocking, compliant)
     
         
-    def followCartTrajPlan(self, plan, grip_traj, dt, splice_time, blocking):
+    def followCartTrajPlan(self, plan, grip_traj, dt, splice_time, blocking, compliant):
         x_vec = []
         
         for i in range(len(plan.points)):
@@ -224,7 +224,7 @@ class ArmMoveUtils:
         self.pos_lock.release()
         self.curr_traj_point = -1
 
-        self.cart_exec.followCartTraj(x_vec, grip_traj, dt, start_angles, splice_time, blocking)
+        self.cart_exec.followCartTraj(x_vec, grip_traj, dt, start_angles, splice_time, blocking, compliant)
     
         #self.cart_exec.followCartTrajMoveit(x_vec, dt)
     

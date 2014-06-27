@@ -334,7 +334,7 @@ class CartesianTrajExecIK():
 
   
     #Follows a cartesian trajectory and tries to synchronize the gripper trajectory with it       
-    def followCartTraj(self, x_vec, grip_traj, dt, start_angles, splice_time, blocking):   
+    def followCartTraj(self, x_vec, grip_traj, dt, start_angles, splice_time, blocking, compliant = False):   
         
         total_extra_time = 0
         new_arm_traj = []
@@ -422,7 +422,7 @@ class CartesianTrajExecIK():
         self.grip_traj_goal.dt = dt
         
         #print "printing self.grip_traj_goal: ", self.grip_traj_goal
-        self.compliant = True
+        self.compliant = compliant
         self.gripper_traj_client.send_goal(self.grip_traj_goal)
         self.arm.sendTraj(self.traj_goal)
 
