@@ -21,18 +21,23 @@ from pr2_lfd_utils import kinematicsUtils
 from moveit_msgs.srv import GetPositionFK, GetPositionFKRequest, GetPositionIK, GetPositionIKRequest
 from simple_robot_control import Arm
 from pr2_gripper_traj_action.msg import *
+from std_msgs.msg import Bool
 
 class CartesianTrajExecIK():
     
     #0=right, 1=left
     def __init__(self, whicharm):
         
+
+        self.compliant = False
         if (whicharm == 0):
           self.arm = Arm('r')
           gripper_traj_serv_name = '/r_gripper_traj_action'
+          effort_topic_name = '/r_arm_controller/effort_exceeded'
         else:
           self.arm = Arm('l')
           gripper_traj_serv_name = '/l_gripper_traj_action'
+          effort_topic_name = '/l_arm_controller/effort_exceeded'
 
         self.kinematics_utils = kinematicsUtils.KinematicsUtils()
         self.whicharm = whicharm
@@ -64,10 +69,16 @@ class CartesianTrajExecIK():
         
         #Keep track if there is a previous traj we were following
         self.is_first_traj = True
+
+
+        rospy.Subscriber(effort_topic_name, Bool, self.effortCB)
         
     
     
-    
+    def effortCB(self,data):
+        if (self.compliant):
+          if (data.data): 
+            self.arm.cancelTraj()
 
 
     #Use matplotlib to plot the positions in the plan
@@ -411,6 +422,7 @@ class CartesianTrajExecIK():
         self.grip_traj_goal.dt = dt
         
         #print "printing self.grip_traj_goal: ", self.grip_traj_goal
+        self.compliant = True
         self.gripper_traj_client.send_goal(self.grip_traj_goal)
         self.arm.sendTraj(self.traj_goal)
 

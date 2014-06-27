@@ -70,7 +70,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         #Construct file names
-        basename = 'data/bagfiles/markers_flat/'
+        basename = 'data/bagfiles/doors/'
         markerfile = basename + 'Marker' + str(skill_id) + '.txt'
 
         marker_goal_data = []
