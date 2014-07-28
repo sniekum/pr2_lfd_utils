@@ -77,7 +77,7 @@ class RecordInteraction():
         self.base_path = base_path
         self.file_path = base_path
         self.seg_num = 1
-        #Use to prevent it thinking there are many rapid presses due to the checking loop
+        #Use to prevent it from thinking there are many rapid presses due to the checking loop
         self.start_hold = False
 
 
@@ -92,8 +92,7 @@ class RecordInteraction():
 
     
     def joystick_callback(self, msg):
-
-            
+       
         #Check for Start button to start recording
         if(msg.buttons[3] == 1):
             if self.start_hold == False:
@@ -118,13 +117,13 @@ class RecordInteraction():
                 
     
     #Start interaction by stopping standard controllers and going into mannequin mode
-    #Starts with left arm mannequin, right arm rigid
+    #Starts with right arm mannequin, left arm rigid
     def startInteraction(self):
         if not self.interaction:
-            self.switch_req.stop_controllers = [self.standard_controllers[1]]
-            self.switch_req.start_controllers = [self.mannequin_controllers[1]]
+            self.switch_req.stop_controllers = [self.standard_controllers[0]]
+            self.switch_req.start_controllers = [self.mannequin_controllers[0]]
             resp = self.switch_control(self.switch_req)
-            self.whicharm_mann = 1
+            self.whicharm_mann = 0
             self.interaction = True
         
         
