@@ -117,13 +117,13 @@ class RecordInteraction():
                 
     
     #Start interaction by stopping standard controllers and going into mannequin mode
-    #Starts with right arm mannequin, left arm rigid
+    #Starts with left arm mannequin, right arm rigid
     def startInteraction(self):
         if not self.interaction:
-            self.switch_req.stop_controllers = [self.standard_controllers[0]]
-            self.switch_req.start_controllers = [self.mannequin_controllers[0]]
+            self.switch_req.stop_controllers = [self.standard_controllers[1]]
+            self.switch_req.start_controllers = [self.mannequin_controllers[1]]
             resp = self.switch_control(self.switch_req)
-            self.whicharm_mann = 0
+            self.whicharm_mann = 1
             self.interaction = True
         
         
