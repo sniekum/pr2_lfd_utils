@@ -109,11 +109,11 @@ class RecordInteraction():
             self.stopInteraction()
             
         #Check for left circle button to switch to left arm
-        if(msg.buttons[15] == 1):
+        if(msg.buttons[14] == 1):
             self.switchToLeftArm()
             
         #Check for right circle button to switch to right arm
-        if(msg.buttons[13] == 1):
+        if(msg.buttons[12] == 1):
             self.switchToRightArm()
                 
     

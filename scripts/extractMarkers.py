@@ -46,6 +46,9 @@ import os
 import os.path
 import matplotlib.pyplot as plt
 from numpy import linalg as LA
+
+from articulation_model_msgs.msg import *
+from geometry_msgs.msg import Pose, Point, Quaternion
       
 if __name__ == '__main__':
     try:
@@ -70,7 +73,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         #Construct file names
-        basename = 'data/bagfiles/doors/'
+        basename = 'data/bagfiles/2014_8_4_21_22_38/'
         markerfile = basename + 'Marker' + str(skill_id) + '.txt'
 
         marker_goal_data = []
@@ -92,7 +95,7 @@ if __name__ == '__main__':
         
 
         #1D
-        #draw_utils.plotTraj(drawable, 0.1)
+        #draw_utils.plotTraj(drawable, 0.1)      
 
         draw_utils.plotTwoTraj3D(marker_goal_data[0], marker_goal_data[1])
         
@@ -103,6 +106,22 @@ if __name__ == '__main__':
         #draw_utils.plotTraj3D(diff)
         plt.show()
 #        print "marker goal data: ", marker_goal_data
+
+        #publish all the markers
+        pub = rospy.Publisher('marker_topic', TrackMsg)
+        msg = TrackMsg()
+        msg.header.stamp = rospy.get_rostime()
+        msg.header.frame_id = "/world"
+        for i in marker_goal_data[0]:          
+          pose = Pose(Point(i[0], i[1], i[2]), Quaternion(i[3], i[4], i[5], i[6]))
+          msg.pose.append( pose )
+
+
+        r = rospy.Rate(10) # 10hz
+        while not rospy.is_shutdown():
+           pub.publish(msg)
+           r.sleep()
+
 
     except rospy.ROSInterruptException:
         print "program interrupted before completion"
