@@ -73,7 +73,8 @@ if __name__ == '__main__':
             sys.exit(0)
 
         #Construct file names
-        basename = 'data/bagfiles/2014_8_4_21_22_38/'
+#        basename = 'data/bagfiles/2014_8_7_22_5_46/'
+        basename = 'data/bagfiles/stapler/ex6/'
         markerfile = basename + 'Marker' + str(skill_id) + '.txt'
 
         marker_goal_data = []
@@ -93,7 +94,7 @@ if __name__ == '__main__':
 
         print "dist_data: mean: ", np.mean(dist_data),  "median: ", np.median(dist_data), "std: ", np.std(dist_data)
         
-
+        
         #1D
         #draw_utils.plotTraj(drawable, 0.1)      
 
@@ -103,7 +104,8 @@ if __name__ == '__main__':
         #draw_utils.plotTraj3D(marker_goal_data[0])
         #draw_utils.plotTraj3D(marker_goal_data[1])
         #3D        
-        #draw_utils.plotTraj3D(diff)
+        draw_utils.plotTraj3D(diff)
+        
         plt.show()
 #        print "marker goal data: ", marker_goal_data
 
@@ -112,15 +114,29 @@ if __name__ == '__main__':
         msg = TrackMsg()
         msg.header.stamp = rospy.get_rostime()
         msg.header.frame_id = "/world"
-        for i in marker_goal_data[0]:          
-          pose = Pose(Point(i[0], i[1], i[2]), Quaternion(i[3], i[4], i[5], i[6]))
-          msg.pose.append( pose )
+        #for i in marker_goal_data[0]:
+        incremental = False
+        if (not incremental):
+          for i in diff:          
+            pose = Pose(Point(i[0], i[1], i[2]), Quaternion(i[3], i[4], i[5], i[6]))
+            msg.pose.append( pose )
 
+          r = rospy.Rate(10) # 10hz
+          while not rospy.is_shutdown():
+             pub.publish(msg)
+             r.sleep()
+        else:
+          r = rospy.Rate(1) # 10hz
+          cnt = 0
+          while not rospy.is_shutdown():
+            msg.pose = []
+            i = diff[cnt]
+            pose = Pose(Point(i[0], i[1], i[2]), Quaternion(i[3], i[4], i[5], i[6]))
+            msg.pose.append( pose )
+            cnt = cnt + 1
+            pub.publish(msg)
+            r.sleep()
 
-        r = rospy.Rate(10) # 10hz
-        while not rospy.is_shutdown():
-           pub.publish(msg)
-           r.sleep()
 
 
     except rospy.ROSInterruptException:
