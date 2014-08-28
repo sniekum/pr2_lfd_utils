@@ -33,7 +33,6 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import numpy as np
 import moveUtils
@@ -145,7 +144,8 @@ class DMPExec:
                    use_head_tracking = False,
                    control_frame = -1,
                    goal_frame = -1,
-                   marker_goal = None):
+                   marker_goal = None,
+                   compliant = False):
                    
         #Get ready to replay DMP under current conditions
         plan_rate = rospy.Rate(plan_rate)
@@ -197,6 +197,7 @@ class DMPExec:
                     
                 x_0_cart.append(gpos)
                 x_dot_0_cart = [0.0]*8
+
                 
                 #Fix starting state so we don't have the wrong aliased quaternion relative to the skill demo beginning point
                 self.gen_utils.minimizeQuaternionError(x_0_cart, demo_start)
@@ -220,9 +221,12 @@ class DMPExec:
                 #Get a DMP plan starting from our current time plus the delay
                 total_points_passed += delay_ind
                 t_0 = (total_points_passed * dt) + planning_delay
+                
+
                     
             resp = self.makePlanRequest(x_0_cart, x_dot_0_cart, t_0, goal, plan_goal_thresh, seg_length, tau, dt, integrate_iter)
             plan = resp.plan
+
             
             #Get gripper data from plan
             gripper_data = []
@@ -249,16 +253,18 @@ class DMPExec:
                 #print
                 continue
 
+
+
             #Execute the cartesian plan
             if(control_frame >= 0):            
-                self.move_utils.arm[whicharm].followCartTraj(adj_plan, gripper_data, dt, splice_time, True)
+                self.move_utils.arm[whicharm].followCartTraj(adj_plan, gripper_data, dt, splice_time, True, compliant)
             else:
-                self.move_utils.arm[whicharm].followCartTrajPlan(plan, gripper_data, dt, splice_time, True)
+                self.move_utils.arm[whicharm].followCartTrajPlan(plan, gripper_data, dt, splice_time, True, compliant)
 
             #is_converged = isConverged(self.wm.getArmCartState(whicharm), goal, goal_thresh)
             is_converged = True
 
-            print "\n"
+            print "DMP Executed \n"
             plan_rate.sleep()
             
             

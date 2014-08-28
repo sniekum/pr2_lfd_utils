@@ -33,7 +33,6 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import matplotlib.pyplot as plt
 import singleton
@@ -42,6 +41,8 @@ import visualization_msgs.msg as vm
 import tf
 import geometry_msgs.msg
 import std_msgs.msg
+import numpy as np
+from mpl_toolkits.mplot3d import *
 
 #Singleton class to support drawing / plotting operations
 class DrawUtils:
@@ -72,10 +73,11 @@ class DrawUtils:
      
     def plotTraj(self,traj,dt):
         n_pts = len(traj)
-        dims = len(traj[0])
+        dims = len(traj[0:3])
         
         t_vec = [0]*n_pts
         x_vec = [0]*n_pts
+
         
         plt.figure()
         for i in range(dims):
@@ -83,8 +85,65 @@ class DrawUtils:
                 x_vec[j] = traj[j][i]
                 t_vec[j] = dt*j
             plt.plot(t_vec, x_vec)
-    
-    
+
+
+
+    def plotTraj3D(self,traj):
+        n_pts = len(traj)
+        dims = len(traj[0:3])
+        
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+
+        x_vec = [0]*n_pts
+        y_vec = [0]*n_pts
+        z_vec = [0]*n_pts
+
+        for j in range(n_pts):
+          x_vec[j] = traj[j][0]
+          y_vec[j] = traj[j][1]
+          z_vec[j] = traj[j][2]
+
+        ax.scatter(x_vec, y_vec, z_vec)
+      
+
+
+
+
+    def plotTwoTraj3D(self,traj1, traj2):
+
+        if (len(traj1) != len(traj2)):
+          print "Length of trajectory 1 is not equal to trajectory 2"          
+          return
+        n_pts = len(traj1)
+        dims = len(traj1[0:3])
+        
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+
+        x_vec1 = [0]*n_pts
+        y_vec1 = [0]*n_pts
+        z_vec1 = [0]*n_pts
+
+        x_vec2 = [0]*n_pts
+        y_vec2 = [0]*n_pts
+        z_vec2 = [0]*n_pts
+
+
+        for j in range(n_pts):
+          x_vec1[j] = traj1[j][0]
+          y_vec1[j] = traj1[j][1]
+          z_vec1[j] = traj1[j][2]
+
+          x_vec2[j] = traj2[j][0]
+          y_vec2[j] = traj2[j][1]
+          z_vec2[j] = traj2[j][2]
+
+
+        ax.scatter(x_vec1, y_vec1, z_vec1)
+        ax.scatter(x_vec2, y_vec2, z_vec2)
+
+        
     def drawTriangle(self,pt1,pt2,pt3):
         m = vm.Marker()
         m.type = 11

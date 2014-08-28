@@ -1,80 +1,79 @@
-#!/usr/bin/python
-import roslib
-roslib.load_manifest('pr2_lfd_utils')
+#!/usr/bin/env python
+
+# Software License Agreement (BSD License)
+#
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of SRI International nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: Karol Hausman
+
+
 import rospy
-import actionlib as al 
-from pr2_controllers_msgs.msg import * 
-from trajectory_msgs.msg import *
+from simple_robot_control import *
 
-class MoveArmsToSide():
+def moveArmsToSide():
 
-    def __init__(self):
-        self.traj_client = []
-        self.traj_client.append(al.SimpleActionClient("l_arm_controller/joint_trajectory_action",JointTrajectoryAction))
-        while not self.traj_client[0].wait_for_server(rospy.Duration(5.0)):
-            print "Waiting for the joint_trajectory_action server..."
-        print "Connected to left joint_trajectory_action server"
-        
-        self.traj_client.append(al.SimpleActionClient("r_arm_controller/joint_trajectory_action",JointTrajectoryAction))
-        while not self.traj_client[1].wait_for_server(rospy.Duration(5.0)):
-            print "Waiting for the joint_trajectory_action server..."
-        print "Connected to right joint_trajectory_action server"
-        
-        l_joints = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]        
-        r_joints = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
-        
-        self.goal = []
-        self.goal.append(JointTrajectoryGoal())
-        self.goal[0].trajectory.joint_names = l_joints;
-        self.goal.append(JointTrajectoryGoal())
-        self.goal[1].trajectory.joint_names = r_joints;
+  ## First initialize moveit_commander and rospy.
+  rospy.init_node('move_arms_to_side_moveit',
+                  anonymous=True)
 
-		#Connect to the gripper action servers
-        l_gripper_client_name = 'l_gripper_controller/gripper_action'
-        self.l_gripper_client = al.SimpleActionClient(l_gripper_client_name, Pr2GripperCommandAction)
-        while not self.l_gripper_client.wait_for_server(rospy.Duration(5.0)):
-            print "Waiting for the l gripper action server..."
-        print "Connected to l gripper action server"
-        self.l_grip_goal = Pr2GripperCommandGoal()
+  ## Instantiate a RobotCommander object.  This object is an interface to
+  ## the robot as a whole.
 
-        r_gripper_client_name = 'r_gripper_controller/gripper_action'
-        self.r_gripper_client = al.SimpleActionClient(r_gripper_client_name, Pr2GripperCommandAction)
-        while not self.r_gripper_client.wait_for_server(rospy.Duration(5.0)):
-            print "Waiting for the r gripper action server..."
-        print "Connected to r gripper action server"
-        self.r_grip_goal = Pr2GripperCommandGoal()
-        
-
-    def command_grippers(self, position, max_effort):
-        self.l_grip_goal.command.position = position
-        self.l_grip_goal.command.max_effort = max_effort
-        self.l_gripper_client.send_goal(self.l_grip_goal)
-
-        self.r_grip_goal.command.position = position
-        self.r_grip_goal.command.max_effort = max_effort
-        self.r_gripper_client.send_goal(self.r_grip_goal)
+  ## for RVIZ to visualize.
+  rightArm = Arm('r')
+  leftArm = Arm('l')
+  rightGripper = gripper.Gripper('r')
+  leftGripper = gripper.Gripper('l')
 
 
-    def moveToJointAngle(self, angles, isRight):
-        jp = JointTrajectoryPoint()
-        jp.positions = angles
-        jp.time_from_start = rospy.Duration(4.0);
-        self.goal[isRight].trajectory.points.append(jp)
-        self.goal[isRight].trajectory.header.stamp = rospy.Time.now()
-        self.traj_client[isRight].send_goal(self.goal[isRight])
-        self.traj_client[isRight].wait_for_result()
-        self.goal[isRight].trajectory.points = []
-        
-if __name__ == '__main__':
-    try:
-        rospy.init_node('MoveArmsToSideNode')
-        mover = MoveArmsToSide()
-        mover.moveToJointAngle([2.115, -0.020, 1.640, -2.070, 1.640, -1.680, 1.398], 0)
-        mover.moveToJointAngle([-2.115, 0.020, -1.640, -2.070, -1.640, -1.680, 1.398], 1)
-        mover.command_grippers(0.08, -1)
-        print "Done"
-        
-    except rospy.ROSInterruptException:
-        print "program interrupted before completion"
-        
-        
+  left_joint_values = [2.115, -0.020, 1.640, -2.070, 1.640, -1.680, 1.398]
+  right_joint_values = [-2.115, 0.020, -1.640, -2.070, -1.640, -1.680, 1.398]
+
+  leftGripper.openGripper()
+  rightGripper.openGripper()
+  
+  leftArm.goToAngle(left_joint_values, 2.0)
+  rightArm.goToAngle(right_joint_values, 2.0)
+
+  leftGripper.closeGripper()
+  rightGripper.closeGripper()
+
+
+
+  print "============ STOPPING"
+
+
+
+if __name__=='__main__':
+  try:
+    moveArmsToSide()
+  except rospy.ROSInterruptException:
+    pass
+
