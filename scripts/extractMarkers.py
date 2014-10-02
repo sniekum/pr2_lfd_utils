@@ -74,7 +74,11 @@ if __name__ == '__main__':
 
         #Construct file names
 #        basename = 'data/bagfiles/2014_8_7_22_5_46/'
-        basename = 'data/bagfiles/stapler/ex6/'
+#        basename = 'data/bagfiles/2014_9_7_23_38_42/'
+#        basename = 'data/bagfiles/2014_8_21_10_46_5/'
+#        basename = 'data/bagfiles/2014_8_10_21_37_48/'
+#        basename = 'data/bagfiles/2014_9_27_17_46_0/'
+        basename = 'data/bagfiles/2014_9_28_11_48_14/'
         markerfile = basename + 'Marker' + str(skill_id) + '.txt'
 
         marker_goal_data = []
@@ -117,11 +121,18 @@ if __name__ == '__main__':
         #for i in marker_goal_data[0]:
         incremental = False
         if (not incremental):
+          
+          f = open('pickle.txt','w')                    
           for i in diff:          
             pose = Pose(Point(i[0], i[1], i[2]), Quaternion(i[3], i[4], i[5], i[6]))
             msg.pose.append( pose )
+           
+            for item in i:
+              f.write("%f, " % item) # python will convert \n to os.linesep
+            f.write('\n')            
 
           r = rospy.Rate(10) # 10hz
+          f.close()
           while not rospy.is_shutdown():
              pub.publish(msg)
              r.sleep()
