@@ -33,21 +33,20 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import generalUtils
-import trajUtils
-import moveUtils
-import drawUtils
-import arWorldModel
-import skillParse
+from pr2_lfd_utils import generalUtils
+from pr2_lfd_utils import trajUtils
+from pr2_lfd_utils import moveUtils
+from pr2_lfd_utils import drawUtils
+from pr2_lfd_utils import arWorldModel
+from pr2_lfd_utils import skillParse
 import sys
 import os
 import os.path
-import dmpExec
+from pr2_lfd_utils import dmpExec
         
 
 
@@ -93,7 +92,7 @@ if __name__ == '__main__':
             sys.exit(0)
         
         #Construct file names
-        basename = 'data/bagfiles/eraser/'
+        basename = 'data/bagfiles/2014_8_4_22_37_32/'
         demofile = basename + 'demo' + str(skill_id) + '.bag'
         picklefile = basename + 'Pickle' + str(skill_id) + '.txt'
         matfile = basename + 'Mat' + str(skill_id) + '.txt'
@@ -126,13 +125,16 @@ if __name__ == '__main__':
         
         dmp_exec = dmpExec.DMPExec()
         (tau, dmp_list) = dmp_exec.learnDMP(traj_data)
+        #print "dmp result: ", tau, dmp_list
         gf = goal_frame
         #no_exec = True
         
+
+        
         if(goal_frame >= 0):
-            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf, marker_goal=marker_goal_data[0])     
+            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf, marker_goal=marker_goal_data[0], compliant = True)     
         else:
-            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf)     
+            dmp_exec.executeDMP(whicharm, tau, dmp_list, traj_data[0], traj_data[-1], plan_only_no_exec=plan_only, goal_frame=gf, compliant = True)     
 
      
       

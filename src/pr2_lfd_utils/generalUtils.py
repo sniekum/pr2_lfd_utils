@@ -33,12 +33,12 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
+#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import copy
 import geometry_msgs
 import tf
-import singleton
+from pr2_lfd_utils import singleton
 import numpy as np
 
 #Singleton class that contains generally useful utility functions that don't require ROS subscriptions or service connections
