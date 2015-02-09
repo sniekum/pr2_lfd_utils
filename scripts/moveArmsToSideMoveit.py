@@ -34,41 +34,71 @@
 # Author: Karol Hausman
 
 
+import sys
+import copy
 import rospy
-from simple_robot_control import *
+import moveit_commander
+import moveit_msgs.msg
+import geometry_msgs.msg
+from simple_robot_control import gripper
+
+from std_msgs.msg import String
 
 def moveArmsToSide():
 
   ## First initialize moveit_commander and rospy.
+  moveit_commander.roscpp_initialize(sys.argv)
   rospy.init_node('move_arms_to_side_moveit',
                   anonymous=True)
 
   ## Instantiate a RobotCommander object.  This object is an interface to
   ## the robot as a whole.
+  robot = moveit_commander.RobotCommander()
 
   ## for RVIZ to visualize.
-  rightArm = Arm('r')
-  leftArm = Arm('l')
+  display_trajectory_publisher = rospy.Publisher(
+                                      '/move_group/display_planned_path',
+                                      moveit_msgs.msg.DisplayTrajectory)
+
   rightGripper = gripper.Gripper('r')
   leftGripper = gripper.Gripper('l')
+  ## This interface can be used to plan and execute motions on the left
+  ## arm.
+  group = moveit_commander.MoveGroupCommander("left_arm")
 
+  print "============ Printing robot state"
+  print robot.get_current_state()
+  print "============"
+  group.clear_pose_targets()
+ 
+  ## Then, we will get the current set of joint values for the group
+  group_left_variable_values = group.get_current_joint_values()
+  print "============ Left Arm joint values: ", group_left_variable_values
 
   left_joint_values = [2.115, -0.020, 1.640, -2.070, 1.640, -1.680, 1.398]
-  right_joint_values = [-2.115, 0.020, -1.640, -2.070, -1.640, -1.680, 1.398]
-
-  leftGripper.openGripper()
-  rightGripper.openGripper()
+  group.set_joint_value_target(left_joint_values)
+  plan_left = group.go(None, True)
   
-  leftArm.goToAngle(left_joint_values, 2.0)
-  rightArm.goToAngle(right_joint_values, 2.0)
-
   leftGripper.closeGripper()
+
+
+
+  ## Right arm movement
+  group = moveit_commander.MoveGroupCommander("right_arm")
+
+  group.clear_pose_targets()
+  group_right_variable_values = group.get_current_joint_values()
+  print "============ Right Arm joint values: ", group_right_variable_values
+
+  right_joint_values = [-2.115, 0.020, -1.640, -2.070, -1.640, -1.680, 1.398]
+  group.set_joint_value_target(right_joint_values)
+  plan_right = group.go(None, True)
+
   rightGripper.closeGripper()
-
-
 
   print "============ STOPPING"
 
+  moveit_commander.os._exit(0)
 
 
 if __name__=='__main__':

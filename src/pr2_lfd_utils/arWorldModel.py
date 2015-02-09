@@ -33,20 +33,17 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
 import numpy as np
 from ar_track_alvar.msg import *
 from pr2_controllers_msgs.msg import * 
-from kinematics_msgs.srv import *
-from arm_navigation_msgs.srv import *
 import geometry_msgs
 import threading
-import singleton
-import generalUtils
-import moveUtils
+from pr2_lfd_utils import singleton
+from pr2_lfd_utils import generalUtils
+from pr2_lfd_utils import kinematicsUtils
 from pr2_lfd_utils.msg import *
-#import pr2_lfd_utils.msg
+import sys
 
 
 #Singleton class representing object data (from AR tags) and arm states
@@ -57,44 +54,23 @@ class ARWorldModel:
     def __init__(self):
         
         self.gen_utils = generalUtils.GeneralUtils()
-        self.move_utils = moveUtils.MoveUtils()
+        self.kinematics_utils = kinematicsUtils.KinematicsUtils()
         
         self.obj_lock = threading.Lock()
         self.objects = dict()
         
-        self.pose_locks = []
-        self.pose_locks.append(threading.Lock())
-        self.pose_locks.append(threading.Lock())
+        self.pose_locks = threading.Lock()
+        self.gripper_locks = threading.Lock()
         self.arm_cart_poses = [[] for i in xrange(2)]
+        self.grip_pos = [None]*2
+        self.grip_pos_dot = [None]*2
 
-        #There must be a planning scene or FK / IK crashes 
-        print 'Waiting for set planning scene service...'
-        rospy.wait_for_service('/environment_server/set_planning_scene_diff')
-        setPlan = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
-        req = SetPlanningSceneDiffRequest()
-        setPlan(req)
-        print 'OK' 
-        
-        #Set up right/left FK service connections
-        print 'Waiting for forward kinematics services...'
-        rospy.wait_for_service('/pr2_right_arm_kinematics/get_fk')
-        self.getPosFK = []
-        self.getPosFK.append(rospy.ServiceProxy('/pr2_right_arm_kinematics/get_fk', GetPositionFK, persistent=True))
-        self.getPosFK.append(rospy.ServiceProxy('/pr2_left_arm_kinematics/get_fk', GetPositionFK, persistent=True))        
-        print "OK"
-        
-        #Set up right/left FK service requests
-        self.FKreq = [kinematics_msgs.srv.GetPositionFKRequest(),kinematics_msgs.srv.GetPositionFKRequest()]
-        self.FKreq[0].header.frame_id = "torso_lift_link"
-        self.FKreq[0].fk_link_names = ['r_wrist_roll_link']
-        self.FKreq[0].robot_state.joint_state.name = ["r_shoulder_pan_joint", "r_shoulder_lift_joint", "r_upper_arm_roll_joint", "r_elbow_flex_joint", "r_forearm_roll_joint", "r_wrist_flex_joint", "r_wrist_roll_joint"]
-        self.FKreq[1].header.frame_id = "torso_lift_link"
-        self.FKreq[1].fk_link_names = ['l_wrist_roll_link']
-        self.FKreq[1].robot_state.joint_state.name = ["l_shoulder_pan_joint", "l_shoulder_lift_joint", "l_upper_arm_roll_joint", "l_elbow_flex_joint", "l_forearm_roll_joint", "l_wrist_flex_joint", "l_wrist_roll_joint"]
-       
         #Set up right/left pose topic subscriptions
         rospy.Subscriber('/r_arm_controller/state', JointTrajectoryControllerState, self.rArmPosCallback)
         rospy.Subscriber('/l_arm_controller/state', JointTrajectoryControllerState, self.lArmPosCallback)
+
+        rospy.Subscriber('/l_gripper_controller/state', JointControllerState, self.lGripperStateCallback)
+        rospy.Subscriber('/r_gripper_controller/state', JointControllerState, self.rGripperStateCallback)
         
         #Set up AR tag topic subscription
         rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.arPoseMarkerCallback)
@@ -107,20 +83,33 @@ class ARWorldModel:
         self.rmp_pose = geometry_msgs.msg.PoseStamped()
         self.rmp_which_marker = -1
         self.rmp_reset = False
+
+
+
+    def rGripperStateCallback(self, msg):
+        with self.gripper_locks:
+          self.grip_pos[0] = msg.process_value
+          self.grip_pos_dot[0] = msg.process_value_dot
+
+
+    def lGripperStateCallback(self, msg):
+        with self.gripper_locks:
+          self.grip_pos[1] = msg.process_value
+          self.grip_pos_dot[1] = msg.process_value_dot
     
     
     def rArmPosCallback(self, msg):
-        joint_pos = list(msg.actual.positions)
-        cart_pos = self.jointsToCart(joint_pos,0)
-        with self.pose_locks[0]:
-            self.arm_cart_poses[0] = list(cart_pos)
+        with self.pose_locks:
+          joint_pos = list(msg.actual.positions)
+          cart_pos = self.kinematics_utils.getFK(joint_pos,0)
+          self.arm_cart_poses[0] = list(cart_pos)
     
     
     def lArmPosCallback(self, msg):
-        joint_pos = msg.actual.positions
-        cart_pos = self.jointsToCart(joint_pos,1)
-        with self.pose_locks[1]:
-            self.arm_cart_poses[1] = list(cart_pos)
+        with self.pose_locks:
+          joint_pos = msg.actual.positions
+          cart_pos = self.kinematics_utils.getFK(joint_pos,1)
+          self.arm_cart_poses[1] = list(cart_pos)
     
     
     def arPoseMarkerCallback(self, msg):
@@ -155,37 +144,14 @@ class ARWorldModel:
         self.wm_pub.publish(wm_data)
         
     
-    #Converts joint angles to cartesian pose of end effector fo the indicated arm (0=right, 1=left)
-    def jointsToCart(self, angles, whicharm):
-        self.FKreq[whicharm].robot_state.joint_state.position = angles
-        try:
-            response = self.getPosFK[whicharm](self.FKreq[whicharm])
-        except rospy.ServiceException, e:
-            print self.FKreq[whicharm]
-            print "FK service failure: %s" % str(e) 
-            
-        #Get the cartesian pose of the wrist_roll_joint    
-        cartPos = response.pose_stamped[0].pose
-        
-        r = []
-        r.append(cartPos.position.x)
-        r.append(cartPos.position.y)
-        r.append(cartPos.position.z)
-        r.append(cartPos.orientation.x)
-        r.append(cartPos.orientation.y)
-        r.append(cartPos.orientation.z)
-        r.append(cartPos.orientation.w)
-        
-        return r
-    
     
     #Clear the objects and arm state
     def clear(self):
         with self.obj_lock:
             self.objects = dict()
-        with self.pose_locks[0]:
+        with self.pose_locks:
             self.arm_cart_poses[0] = []
-        with self.pose_locks[1]:
+        with self.pose_locks:
             self.arm_cart_poses[1] = []
     
     
@@ -199,7 +165,7 @@ class ARWorldModel:
         
         if arms != []:
             for i in xrange(2):
-                with self.pose_locks[i]:
+                with self.pose_locks:#[i]:
                     self.arm_poses[i] = arms[i]
     
     
@@ -241,9 +207,8 @@ class ARWorldModel:
           
           
     def getArmCartState(self, whicharm):
-        (grip_pos, dot) = self.move_utils.arm[whicharm].getGripPoseInfo()
-        with self.pose_locks[whicharm]:
-            return list(self.arm_cart_poses[whicharm] + [grip_pos])
+        with self.pose_locks:
+            return list(self.arm_cart_poses[whicharm] + [self.grip_pos[whicharm]])
             
             
             
@@ -356,7 +321,7 @@ if __name__ == '__main__':
     task_objects = [0,8]
     
     wm = ARWorldModel()
-    wm.searchUntilAllFound(task_objects)
+    #wm.searchUntilAllFound(task_objects)
     rospy.spin()
     
     
