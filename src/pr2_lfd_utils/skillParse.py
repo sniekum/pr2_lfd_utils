@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('pr2_lfd_utils')
+#import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy
 import actionlib
 import numpy as np

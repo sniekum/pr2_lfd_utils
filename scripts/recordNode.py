@@ -33,11 +33,11 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
+import pr2_lfd_utils
 import rospy 
 import numpy as np
-import arWorldModel
-import recordInteraction
+from pr2_lfd_utils import arWorldModel
+from pr2_lfd_utils import recordInteraction
 
 if __name__ == '__main__':
     rospy.init_node('RecordNode')

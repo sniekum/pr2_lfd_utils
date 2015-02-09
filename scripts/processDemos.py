@@ -33,9 +33,8 @@
 #
 # author: Scott Niekum
 
-import roslib; roslib.load_manifest('pr2_lfd_utils')
 import rospy 
-import bag2mat
+from pr2_lfd_utils import bag2mat
 import glob
 import os.path
 import subprocess
